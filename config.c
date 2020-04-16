@@ -21,14 +21,11 @@ void type_prompt()
 void read_command()
 {
     char buffer[INPUT_SIZE];            
-    char path_command[COMMAND_PATH_SIZE];
     char *token = NULL;
-    char space[64] = " ";
-    char enter[2] = "\n";
-    char *words[2] = {space, space};    //words[0] => command, words[1] => parameter
-    int cnt = 0;
+    char enter[2] = "\n";   
+    char **words;                       //words[0]=>path,words[1]=>command,words[2]=>parameter  
+    static struct Node *HEAD = NULL;
 
-    strcpy(path_command,"/bin/");
     fgets(buffer, INPUT_SIZE, stdin);   
     token = strtok(buffer, enter);      //removes the "\n" at the end of the line
 
@@ -38,41 +35,38 @@ void read_command()
         return;
     }
 
-    else
+    else if (loof_for_pipe(token) == TRUE)
     {   
-        token = strtok(token, space);
+        if ((HEAD = separate_lines(token, HEAD)) != NULL)
+             printf("ALLES GUT MIT DEN PIPES\n");
        
-        while ( token != NULL && cnt < 2 )  //only 2 words are allowed at the moment
+        /*   Algorith to execute multiple commands*/
+        /*                      TO DO                       */
+    }
+    else
+    {
+        if((HEAD = separate_cmd_pmt(token, HEAD)) == NULL)
+            return;
+        else
         {
-            if( cnt == 0)
-                words[cnt] = token;
-                
-            else if ( cnt == 1 )
-                words[cnt] = token;
-                       
-            token = strtok(NULL, space);
-            ++cnt;
+          words = get_information(HEAD,1);  //1 because if no Pipe there is one Node
+          exec_cmd(words[0],words[1]);
         }
     }
 
-    strcat(path_command,words[0]);
-
-//check if the parameter is a variable, if it is get the value
-//and overwrite the initial parameter value
-
-    if( (look_for_variable(words[1])) == TRUE)                                           
+    while( HEAD != NULL )
     {
-        if ((get_var_value(words[1]) == NULL))
-            return;
-    }
-
-    exec_cmd(path_command,words[0],words[1]);
+        HEAD = delete_list(HEAD);
+    } 
 }
 
-void exec_cmd(const char *path_command, char *cmd,  char *pmt)
+void exec_cmd(char *cmd,  char *pmt)
 {
     int status;
     pid_t pid,pid_child;
+    char prefix[16];
+    strcpy(prefix,"/bin/");
+    const char *path_command = strcat(prefix,cmd);
 
     char *command[] = {cmd, pmt, (char*)NULL};
 
@@ -147,27 +141,4 @@ void exec_cmd(const char *path_command, char *cmd,  char *pmt)
     }
 }
 
-int look_for_variable(const char *pmt)
-{
-    if ( pmt[0] == '$' )
-        return TRUE;
-    else
-        return FALSE;    
-}
 
-char* get_var_value(char *pmt)
-{
-    char *varname = pmt;
-    varname = varname + 1;
-    char *varvalue = getenv(varname);
-    if(varvalue != NULL)
-    {
-        strcpy(pmt, varvalue);
-        return pmt;
-    }
-    else
-    {
-        perror("Variable doesn't exist...\n");
-        return NULL;
-    }
-}
