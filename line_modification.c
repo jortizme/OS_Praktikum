@@ -25,10 +25,9 @@ char* get_var_value(char *pmt)
     }
 }
 
-struct Node * separate_cmd_pmt(char* token, struct Node *HEAD )
+struct Node * separate_cmd_pmt(char* token, struct Node *HEAD, char *space)
 {
     int cnt = 0;
-    char space[64] = " ";
     char *words[2] = {NULL, NULL};
     //char path_command[32] = "/bin/";
    
@@ -76,7 +75,7 @@ int loof_for_pipe(char *line)
    return FALSE;  
 }
 
-struct Node * separate_lines( char* zeile, struct Node *HEAD )
+struct Node * separate_lines( char* zeile, struct Node *HEAD, char *space )
 {    
    char *aux = zeile;
    char *before_aux = aux - 1;
@@ -88,7 +87,7 @@ struct Node * separate_lines( char* zeile, struct Node *HEAD )
        if( *aux == '|' )
        {
             *before_aux = '\0';
-            if ((HEAD = separate_cmd_pmt(kopf_zeile,HEAD)) == NULL)
+            if ((HEAD = separate_cmd_pmt(kopf_zeile,HEAD ,space)) == NULL)
                 return NULL;
             aux = after_aux + 1;
             after_aux = aux + 1;
@@ -97,7 +96,7 @@ struct Node * separate_lines( char* zeile, struct Node *HEAD )
        }
        else if (*after_aux == '\0')
        {
-           if ((HEAD = separate_cmd_pmt(kopf_zeile,HEAD)) == NULL)
+           if ((HEAD = separate_cmd_pmt(kopf_zeile,HEAD, space)) == NULL)
                 return NULL;
        }
        

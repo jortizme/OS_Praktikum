@@ -22,6 +22,7 @@ void read_command()
 {
     char buffer[INPUT_SIZE];            
     char *token = NULL;
+    char space[2] = " ";
     char enter[2] = "\n";   
     char **words;                       //words[0]=>path,words[1]=>command,words[2]=>parameter  
     static struct Node *HEAD = NULL;
@@ -37,7 +38,7 @@ void read_command()
 
     else if (loof_for_pipe(token) == TRUE)
     {   
-        if ((HEAD = separate_lines(token, HEAD)) != NULL)
+        if ((HEAD = separate_lines(token, HEAD, space)) != NULL)
              printf("ALLES GUT MIT DEN PIPES\n");
        
         /*   Algorith to execute multiple commands*/
@@ -45,7 +46,7 @@ void read_command()
     }
     else
     {
-        if((HEAD = separate_cmd_pmt(token, HEAD)) == NULL)
+        if((HEAD = separate_cmd_pmt(token, HEAD, space)) == NULL)
             return;
         else
         {

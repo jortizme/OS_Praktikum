@@ -7,7 +7,7 @@
  struct Node
 {
     int position;       //to numerate the number of commands (if pipelining)
-    char *info[2];      //info[0]=>path, info[1]=>command, info[2]=>parameter
+    char *info[2];      //info[0]=>command, info[1]=>parameter
     struct Node *next;  //points to the next command line"
 };
 
