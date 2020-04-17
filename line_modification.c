@@ -29,12 +29,10 @@ struct Node * separate_cmd_pmt(char* token, struct Node *HEAD, char *space)
 {
     int cnt = 0;
     char *words[2] = {NULL, NULL};
-    //char path_command[32] = "/bin/";
    
-   // strcpy(path_command,"/bin/");
     token = strtok(token, space);
        
-    while ( token != NULL && cnt < 2 )  //only 2 words are allowed at the moment
+    while ( token != NULL && cnt < 2 )  //only 2 words are allowed 
     {
         if( cnt == 0)
             words[0] = token;
@@ -47,17 +45,16 @@ struct Node * separate_cmd_pmt(char* token, struct Node *HEAD, char *space)
     } 
 
     if( words[1] == NULL )
-            words[1] = space;
+        words[1] = space;
+
     //check if the parameter is a variable, if it is get the value
     //and overwrite the initial parameter value     
-
     if( (look_for_variable(words[1])) == TRUE)                                           
     {
         if ((get_var_value(words[1]) == NULL))
             return NULL;
     }
 
-    //words[0] = strcat("/bin/", words[1]);
     HEAD = add_to_list(HEAD, words);
 
     return HEAD;

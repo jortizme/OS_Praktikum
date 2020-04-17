@@ -24,7 +24,7 @@ void read_command()
     char *token = NULL;
     char space[2] = " ";
     char enter[2] = "\n";   
-    char **words;                       //words[0]=>path,words[1]=>command,words[2]=>parameter  
+    char **words;                       //words[0]=>command,words[1]=>parameter  
     static struct Node *HEAD = NULL;
 
     fgets(buffer, INPUT_SIZE, stdin);   
@@ -39,7 +39,7 @@ void read_command()
     else if (loof_for_pipe(token) == TRUE)
     {   
         if ((HEAD = separate_lines(token, HEAD, space)) != NULL)
-             printf("ALLES GUT MIT DEN PIPES\n");
+             printf("ALLES GUT MIT DEN PIPES\n");               //this line has to be removed
        
         /*   Algorith to execute multiple commands*/
         /*                      TO DO                       */
@@ -50,8 +50,9 @@ void read_command()
             return;
         else
         {
-          words = get_information(HEAD,1);  //1 because if no Pipe there is one Node
-          exec_cmd(words[0],words[1]);
+            //1 because if there is no Pipe we muss handle just one Node
+            words = get_information(HEAD,1);  
+            exec_cmd(words[0],words[1]);
         }
     }
 
@@ -65,11 +66,22 @@ void exec_cmd(char *cmd,  char *pmt)
 {
     int status;
     pid_t pid,pid_child;
-    char prefix[16];
-    strcpy(prefix,"/bin/");
+    char space[2] = " ";
+    char prefix[32] = "/bin/";
     const char *path_command = strcat(prefix,cmd);
+    char *command[3];
 
-    char *command[] = {cmd, pmt, (char*)NULL};
+    if ( strcmp(pmt,space) == 0)
+    {
+        command[0] = cmd;
+        command[1] = NULL;
+    }
+    else
+    {
+        command[0] = cmd;
+        command[1] = pmt;
+        command[2] = NULL;
+    }
 
 //Build-in commands
 
