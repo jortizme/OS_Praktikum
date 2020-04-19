@@ -20,7 +20,7 @@ char* get_var_value(char *pmt)
     }
     else
     {
-        perror("Variable doesn't exist...\n");
+        printf("Variable doesn't exist...\n");
         return NULL;
     }
 }
@@ -72,7 +72,7 @@ int loof_for_pipe(char *line)
    return FALSE;  
 }
 
-struct Node * separate_lines( char* zeile, struct Node *HEAD, char *space )
+struct Node * separate_lines( char* zeile, struct Node *HEAD, char *space)
 {    
    char *aux = zeile;
    char *before_aux = aux - 1;
@@ -93,8 +93,8 @@ struct Node * separate_lines( char* zeile, struct Node *HEAD, char *space )
        }
        else if (*after_aux == '\0')
        {
-           if ((HEAD = separate_cmd_pmt(kopf_zeile,HEAD, space)) == NULL)
-                return NULL;
+            if ((HEAD = separate_cmd_pmt(kopf_zeile,HEAD, space)) == NULL)
+                return NULL;    
        }
        
        after_aux++;

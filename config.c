@@ -23,10 +23,9 @@ void read_command()
     char buffer[INPUT_SIZE];            
     char *token = NULL;
     char space[2] = " ";
-    char enter[2] = "\n";   
-    char **words;                       //words[0]=>command,words[1]=>parameter  
+    char enter[2] = "\n";                         
     static struct Node *HEAD = NULL;
-
+    
     fgets(buffer, INPUT_SIZE, stdin);   
     token = strtok(buffer, enter);      //removes the "\n" at the end of the line
 
@@ -39,10 +38,9 @@ void read_command()
     else if (loof_for_pipe(token) == TRUE)
     {   
         if ((HEAD = separate_lines(token, HEAD, space)) != NULL)
-             printf("ALLES GUT MIT DEN PIPES\n");               //this line has to be removed
-       
-        /*   Algorith to execute multiple commands*/
-        /*                      TO DO                       */
+        {
+            /*  TO DO */
+        }
     }
     else
     {
@@ -51,8 +49,8 @@ void read_command()
         else
         {
             //1 because if there is no Pipe we muss handle just one Node
-            words = get_information(HEAD,1);  
-            exec_cmd(words[0],words[1]);
+            
+            exec_normal(HEAD);
         }
     }
 
@@ -62,69 +60,35 @@ void read_command()
     } 
 }
 
-void exec_cmd(char *cmd,  char *pmt)
+void exec_normal(struct Node* HEAD)
 {
     int status;
     pid_t pid,pid_child;
     char space[2] = " ";
-    char prefix[32] = "/bin/";
-    const char *path_command = strcat(prefix,cmd);
     char *command[3];
 
-    if ( strcmp(pmt,space) == 0)
+     //words[0]=>command,words[1]=>parameter 
+    char **words = get_information(HEAD,1); //1 beause there is just one line 
+
+    if ( strcmp(words[1],space) == 0)
     {
-        command[0] = cmd;
+        command[0] = words[0];
         command[1] = NULL;
     }
     else
     {
-        command[0] = cmd;
-        command[1] = pmt;
+        command[0] = words[0];
+        command[1] = words[1];
         command[2] = NULL;
     }
 
-//Build-in commands
-
-    if(strcmp(command[0],"exit") == 0)
-    {
-        printf("exiting ...\n");
-        exit(EXIT_SUCCESS);
-
-    }
-
-    else if(strcmp(command[0],"cd") == 0)
-    {
-        if(chdir(command[1]) < 0)
-        {
-            perror("Directory could not be changed ");
-            return;
-        }
-
-    }
-
-    else if( (strcmp(command[0],"export") == 0) 
-            || (strcmp(command[0],"set") == 0))
-    {
-        char *envnam = strtok(command[1], "=");
-        command[1] = strtok(NULL, "=");
-        char *envvalue;
-
-        if ((look_for_variable(command[1])) == TRUE)
-        {
-            if((get_var_value(command[1])) == NULL)
-                return;   
-        }
-        envvalue = command[1];
-        setenv(envnam,envvalue,1);
-
-        char *ausgabe = getenv(envnam);
-        printf("%s was given the value: %s\n",envnam , ausgabe);
-    }
-
-//Extern commands
-
+    int cntrl = build_in_cmd(command);
+    if(cntrl == SUCCESS || cntrl == ERROR)  //Was it a built_in command or was there any error 
+        return;                             //executing a built-in, then leave the function
+    
     else
-    {
+    {  
+    //Extern commands
 
         pid = fork();
 
@@ -136,22 +100,130 @@ void exec_cmd(char *cmd,  char *pmt)
 
         if(pid != 0)
         {
-            pid_child = waitpid(pid, &status, 0);
+            pid_child = waitpid(-1, &status, 0);
             if (pid_child < 0)
             {
                 perror("waitpid failed\n");
                 exit(EXIT_FAILURE);
-            }
+            }   
         }
         else
         {
-            if((execv(path_command,command) < 0))
+            if((execvp(words[0],command) < 0))
             {
                 perror("execv failed");
                 exit(EXIT_FAILURE);
             }
-        }   
+                      
+        } 
+    }
+}
+void exec_pipe(struct Node* HEAD)
+{
+int status;
+    pid_t pid,pid_child;
+    char space[2] = " ";
+    char *command[3];
+
+     //words[0]=>command,words[1]=>parameter 
+    char **words = get_information(HEAD,1); //1 beause there is just one line 
+
+    if ( strcmp(words[1],space) == 0)
+    {
+        command[0] = words[0];
+        command[1] = NULL;
+    }
+    else
+    {
+        command[0] = words[0];
+        command[1] = words[1];
+        command[2] = NULL;
+    }
+
+    int cntrl = build_in_cmd(command);
+    if(cntrl == SUCCESS || cntrl == ERROR)  //Was it a built_in command or was there any error 
+        return;                             //executing a built-in, then leave the function
+    
+    else
+    {  
+    //Extern commands
+
+        pid = fork();
+
+        if (pid < 0)
+        {
+            perror("Fork failed\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if(pid != 0)
+        {
+            pid_child = waitpid(-1, &status, 0);
+            if (pid_child < 0)
+            {
+                perror("waitpid failed\n");
+                exit(EXIT_FAILURE);
+            }   
+        }
+        else
+        {
+            if((execvp(words[0],command) < 0))
+            {
+                perror("execv failed");
+                exit(EXIT_FAILURE);
+            }
+                      
+        } 
     }
 }
 
 
+int build_in_cmd(char **cmd)
+{  
+//Build-in commands
+    if(strcmp(cmd[0],"exit") == 0)
+    {
+        printf("exiting ...\n");
+        exit(EXIT_SUCCESS);
+
+    }
+
+    else if(strcmp(cmd[0],"cd") == 0)
+    {
+        if(chdir(cmd[1]) < 0)
+        {
+            perror("Directory could not be changed ");
+            return ERROR;
+        }
+        else
+        {
+            return SUCCESS;
+        }
+        
+    }
+
+    else if(strcmp(cmd[0],"export") == 0)
+    {
+        char *envnam = strtok(cmd[1], "=");
+        cmd[1] = strtok(NULL, "=");
+        char *envvalue;
+
+        if ((look_for_variable(cmd[1])) == TRUE)
+        {
+            if((get_var_value(cmd[1])) == NULL)
+                return ERROR;   
+
+            envvalue = cmd[1];
+            setenv(envnam,envvalue,1);
+            char *ausgabe = getenv(envnam);
+            printf("%s was given the value: %s\n",envnam , ausgabe);
+            return SUCCESS;
+        }
+        else
+        {
+            printf("No variable $... recognized...\n");
+            return ERROR;
+        }
+    }
+    return FAILURE;
+}

@@ -18,11 +18,13 @@
 #define INPUT_SIZE 512
 #define COMMAND_PATH_SIZE 32
 
-enum boolean {FALSE, TRUE, FAILURE, SUCCESS};
+enum states {FALSE, TRUE, FAILURE, SUCCESS, ERROR};
 
 void type_prompt();
 void read_command();
-void exec_cmd( char *command,  char* parameter);
+void exec_normal(struct Node* HEAD);
+void exec_pipe(struct Node* HEAD);
+int build_in_cmd(char **cmd);
 
 
 #endif
