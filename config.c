@@ -143,8 +143,8 @@ void exec_normal(struct Node* HEAD)
 }
 void exec_pipe(struct Node* HEAD)
 {
-    int status1, status2;
-    pid_t pid1,pid_child1, pid2, pid_child2;
+    int status2;
+    pid_t child1,child2;
     char space[2] = " ";
     char *command1[3];
     char *command2[3];
@@ -155,12 +155,6 @@ void exec_pipe(struct Node* HEAD)
     char **words2 = get_information(HEAD,2);
     check_parameter(words1, command1, space);
     check_parameter(words2, command2, space);
-    
-
-    /*int cntrl = build_in_cmd(command);
-    if(cntrl == SUCCESS || cntrl == ERROR)  //Was it a built_in command or was there any error 
-        return;                             //executing a built-in, then leave the function
-    */
    
 //Extern commands
     if (pipe(fdes) == -1)   //create the pipe and initialize fdes[0] and fdes[1]
@@ -168,59 +162,28 @@ void exec_pipe(struct Node* HEAD)
         perror("pipe\n");
         exit(EXIT_FAILURE);
     }
-
-    pid1 = fork();          //create first child
-
-    if (pid1 < 0)
+    if((child1 = fork()) < 0)   //create child1
     {
         perror("Fork 1 failed\n");
         exit(EXIT_FAILURE);
-    }
-
-    if(pid1 != 0)           //if parent after the first fork
+    }   
+    if(child1 != 0)         
     {
-        pid2 = fork();      //create the second child
-
-        if(pid2 < 0)
+        if((child2 = fork()) < 0)   //create child2 as parent of child1
         {
             perror("Fork 2 failed\n");
             exit(EXIT_FAILURE);
         }
-        else if(pid2 != 0)  //if parent after the second fork
-        {
-            pid_child1 = waitpid(pid1, &status1, 0);    //wait for child1    
-            pid_child2 = waitpid(pid2, &status2, 0);    //wait for child2
-                
-            if (pid_child1 < 0)
-            {
-                perror("waitpid1 failed\n");
-                exit(EXIT_FAILURE);
-            }
-            
-            else if (pid_child2 < 0)
-            {
-                perror("waitpid2 failed\n");
-                exit(EXIT_FAILURE);
-            }
-                     
-        }
-        else    //if chil2
-        {
-            close(fdes[1]);                 //close the write part of the pipe
-            //int fd0 = dup(fdes[0]);
-            if(dup2(fdes[0], STDIN_FILENO < 0))    //fdes[0] will be copied into STDIN and survive execvp
-            {
-                perror("dup() failed at fd[0]");
-                exit(EXIT_FAILURE);
-            }
-            if((execvp(words2[0],command2) < 0))
-            {
-                perror("execv failed");
-                exit(EXIT_FAILURE);
-            }
-        }   
     }
-    else        //if child 1
+    if(child1 != 0 && child2 != 0)  //when parent from both
+    {
+        if(waitpid(child2, &status2, 0) < 0)    //wait for child2
+        {
+            perror("waitpid2 failed\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    else if(child1 == 0)        //when child1
     {
         close(fdes[0]);                  //close the read part of the pipe
         //int fd1 = dup(fdes[1]);
@@ -235,7 +198,22 @@ void exec_pipe(struct Node* HEAD)
             perror("execv failed");
             exit(EXIT_FAILURE);
         }               
-    } 
+    }
+    else if(child2 == 0)        //when child2
+    {
+        close(fdes[1]);                 //close the write part of the pipe
+        //int fd0 = dup(fdes[0]);
+        if(dup2(fdes[0], STDIN_FILENO) < 0)    //fdes[0] will be copied into STDIN and survive execvp
+        {
+            perror("dup() failed at fd[0]");
+            exit(EXIT_FAILURE);
+        }
+        if((execvp(words2[0],command2) < 0))
+        {
+            perror("execv failed");
+            exit(EXIT_FAILURE);
+        }
+    }
 }
 
 
