@@ -39,7 +39,7 @@ void read_command()
     {   
         if ((HEAD = separate_lines(token, HEAD, space)) != NULL)
         {
-            /*  TO DO */
+            exec_pipe(HEAD);
         }
     }
     else
@@ -69,161 +69,173 @@ void exec_normal(struct Node* HEAD)
 
      //words[0]=>command,words[1]=>parameter 
     char **words = get_information(HEAD,1); //1 beause there is just one line 
+    check_parameter(words, command, space);
 
-    if ( strcmp(words[1],space) == 0)
-    {
-        command[0] = words[0];
-        command[1] = NULL;
-    }
-    else
-    {
-        command[0] = words[0];
-        command[1] = words[1];
-        command[2] = NULL;
-    }
-
-    int cntrl = build_in_cmd(command);
-    if(cntrl == SUCCESS || cntrl == ERROR)  //Was it a built_in command or was there any error 
-        return;                             //executing a built-in, then leave the function
-    
-    else
-    {  
-    //Extern commands
-
-        pid = fork();
-
-        if (pid < 0)
-        {
-            perror("Fork failed\n");
-            exit(EXIT_FAILURE);
-        }
-
-        if(pid != 0)
-        {
-            pid_child = waitpid(-1, &status, 0);
-            if (pid_child < 0)
-            {
-                perror("waitpid failed\n");
-                exit(EXIT_FAILURE);
-            }   
-        }
-        else
-        {
-            if((execvp(words[0],command) < 0))
-            {
-                perror("execv failed");
-                exit(EXIT_FAILURE);
-            }
-                      
-        } 
-    }
-}
-void exec_pipe(struct Node* HEAD)
-{
-int status;
-    pid_t pid,pid_child;
-    char space[2] = " ";
-    char *command[3];
-
-     //words[0]=>command,words[1]=>parameter 
-    char **words = get_information(HEAD,1); //1 beause there is just one line 
-
-    if ( strcmp(words[1],space) == 0)
-    {
-        command[0] = words[0];
-        command[1] = NULL;
-    }
-    else
-    {
-        command[0] = words[0];
-        command[1] = words[1];
-        command[2] = NULL;
-    }
-
-    int cntrl = build_in_cmd(command);
-    if(cntrl == SUCCESS || cntrl == ERROR)  //Was it a built_in command or was there any error 
-        return;                             //executing a built-in, then leave the function
-    
-    else
-    {  
-    //Extern commands
-
-        pid = fork();
-
-        if (pid < 0)
-        {
-            perror("Fork failed\n");
-            exit(EXIT_FAILURE);
-        }
-
-        if(pid != 0)
-        {
-            pid_child = waitpid(-1, &status, 0);
-            if (pid_child < 0)
-            {
-                perror("waitpid failed\n");
-                exit(EXIT_FAILURE);
-            }   
-        }
-        else
-        {
-            if((execvp(words[0],command) < 0))
-            {
-                perror("execv failed");
-                exit(EXIT_FAILURE);
-            }
-                      
-        } 
-    }
-}
-
-
-int build_in_cmd(char **cmd)
-{  
-//Build-in commands
-    if(strcmp(cmd[0],"exit") == 0)
+   //Build-in commands
+    if(strcmp(command[0],"exit") == 0)
     {
         printf("exiting ...\n");
         exit(EXIT_SUCCESS);
 
     }
 
-    else if(strcmp(cmd[0],"cd") == 0)
+    else if(strcmp(command[0],"cd") == 0)
     {
-        if(chdir(cmd[1]) < 0)
+        if(chdir(command[1]) < 0)
         {
-            perror("Directory could not be changed ");
-            return ERROR;
+            perror("Directory could not be changed\n");
+            return;
         }
-        else
-        {
-            return SUCCESS;
-        }
-        
     }
 
-    else if(strcmp(cmd[0],"export") == 0)
+    else if(strcmp(command[0],"export") == 0)
     {
-        char *envnam = strtok(cmd[1], "=");
-        cmd[1] = strtok(NULL, "=");
+        char *envnam = strtok(command[1], "=");
+        command[1] = strtok(NULL, "=");
         char *envvalue;
 
-        if ((look_for_variable(cmd[1])) == TRUE)
+        if ((look_for_variable(command[1])) == TRUE)
         {
-            if((get_var_value(cmd[1])) == NULL)
-                return ERROR;   
+            if((get_var_value(command[1])) == NULL)
+                return ;   
 
-            envvalue = cmd[1];
+            envvalue = command[1];
             setenv(envnam,envvalue,1);
             char *ausgabe = getenv(envnam);
             printf("%s was given the value: %s\n",envnam , ausgabe);
-            return SUCCESS;
         }
         else
         {
             printf("No variable $... recognized...\n");
-            return ERROR;
+            return;
         }
     }
-    return FAILURE;
+    else
+    {  
+    //Extern commands
+
+        pid = fork();
+
+        if (pid < 0)
+        {
+            perror("Fork failed\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if(pid != 0)
+        {
+            pid_child = waitpid(-1, &status, 0);
+            if (pid_child < 0)
+            {
+                perror("waitpid failed\n");
+                exit(EXIT_FAILURE);
+            }   
+        }
+        else
+        {
+            if((execvp(words[0],command) < 0))
+            {
+                perror("execv failed");
+                exit(EXIT_FAILURE);
+            }            
+        } 
+    }
 }
+void exec_pipe(struct Node* HEAD)
+{
+    int status1, status2;
+    pid_t pid1,pid_child1, pid2, pid_child2;
+    char space[2] = " ";
+    char *command1[3];
+    char *command2[3];
+    int fdes[2];
+
+     //words[0]=>command,words[1]=>parameter 
+    char **words1 = get_information(HEAD,1); //1 beause there is just one line
+    char **words2 = get_information(HEAD,2);
+    check_parameter(words1, command1, space);
+    check_parameter(words2, command2, space);
+    
+
+    /*int cntrl = build_in_cmd(command);
+    if(cntrl == SUCCESS || cntrl == ERROR)  //Was it a built_in command or was there any error 
+        return;                             //executing a built-in, then leave the function
+    */
+   
+//Extern commands
+    if (pipe(fdes) == -1)   //create the pipe and initialize fdes[0] and fdes[1]
+    {
+        perror("pipe\n");
+        exit(EXIT_FAILURE);
+    }
+
+    pid1 = fork();          //create first child
+
+    if (pid1 < 0)
+    {
+        perror("Fork 1 failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(pid1 != 0)           //if parent after the first fork
+    {
+        pid2 = fork();      //create the second child
+
+        if(pid2 < 0)
+        {
+            perror("Fork 2 failed\n");
+            exit(EXIT_FAILURE);
+        }
+        else if(pid2 != 0)  //if parent after the second fork
+        {
+            pid_child1 = waitpid(pid1, &status1, 0);    //wait for child1    
+            pid_child2 = waitpid(pid2, &status2, 0);    //wait for child2
+                
+            if (pid_child1 < 0)
+            {
+                perror("waitpid1 failed\n");
+                exit(EXIT_FAILURE);
+            }
+            
+            else if (pid_child2 < 0)
+            {
+                perror("waitpid2 failed\n");
+                exit(EXIT_FAILURE);
+            }
+                     
+        }
+        else    //if chil2
+        {
+            close(fdes[1]);                 //close the write part of the pipe
+            //int fd0 = dup(fdes[0]);
+            if(dup2(fdes[0], STDIN_FILENO < 0))    //fdes[0] will be copied into STDIN and survive execvp
+            {
+                perror("dup() failed at fd[0]");
+                exit(EXIT_FAILURE);
+            }
+            if((execvp(words2[0],command2) < 0))
+            {
+                perror("execv failed");
+                exit(EXIT_FAILURE);
+            }
+        }   
+    }
+    else        //if child 1
+    {
+        close(fdes[0]);                  //close the read part of the pipe
+        //int fd1 = dup(fdes[1]);
+        if(dup2(fdes[1], STDOUT_FILENO) < 0)   //fdes[1] will be copied into STDOUT and survive execvp
+        {
+            perror("dup() failed at fd[1]");
+            exit(EXIT_FAILURE);
+        }
+
+        if((execvp(words1[0],command1) < 0))
+        {
+            perror("execv failed");
+            exit(EXIT_FAILURE);
+        }               
+    } 
+}
+
+

@@ -104,3 +104,18 @@ struct Node * separate_lines( char* zeile, struct Node *HEAD, char *space)
 
     return HEAD;
 }
+
+void check_parameter(char **words, char **command, char *space)
+{
+    if ( strcmp(words[1],space) == 0)
+    {
+        command[0] = words[0];
+        command[1] = NULL;
+    }
+    else
+    {
+        command[0] = words[0];
+        command[1] = words[1];
+        command[2] = NULL;
+    }
+}
