@@ -177,9 +177,6 @@ void exec_pipe(struct Node* HEAD)
     }
     if(child1 != 0 && child2 != 0)  //when parent from both
     {
-        
-        //dup2(STDOUT_FILENO,fdes[1]);
-        //dup2(STDIN_FILENO, fdes[0]);
         close(fdes[0]);
         close(fdes[1]);
 
