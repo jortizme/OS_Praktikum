@@ -143,7 +143,7 @@ void exec_normal(struct Node* HEAD)
 }
 void exec_pipe(struct Node* HEAD)
 {
-    int status2;
+    int status1, status2;
     pid_t child1,child2;
     char space[2] = " ";
     char *command1[3];
@@ -177,21 +177,35 @@ void exec_pipe(struct Node* HEAD)
     }
     if(child1 != 0 && child2 != 0)  //when parent from both
     {
+        
+        //dup2(STDOUT_FILENO,fdes[1]);
+        //dup2(STDIN_FILENO, fdes[0]);
+        close(fdes[0]);
+        close(fdes[1]);
+
+        if(waitpid(child1, &status1, 0) < 0)    //wait for child1
+        {
+            perror("waitpid2 failed\n");
+            exit(EXIT_FAILURE);
+        }
         if(waitpid(child2, &status2, 0) < 0)    //wait for child2
         {
             perror("waitpid2 failed\n");
             exit(EXIT_FAILURE);
         }
+
     }
     else if(child1 == 0)        //when child1
     {
-        close(fdes[0]);                  //close the read part of the pipe
+        
         //int fd1 = dup(fdes[1]);
         if(dup2(fdes[1], STDOUT_FILENO) < 0)   //fdes[1] will be copied into STDOUT and survive execvp
         {
             perror("dup() failed at fd[1]");
             exit(EXIT_FAILURE);
         }
+        close(fdes[0]);                  //close the read part of the pipe
+        close(fdes[1]);
 
         if((execvp(words1[0],command1) < 0))
         {
@@ -201,13 +215,15 @@ void exec_pipe(struct Node* HEAD)
     }
     else if(child2 == 0)        //when child2
     {
-        close(fdes[1]);                 //close the write part of the pipe
+       
         //int fd0 = dup(fdes[0]);
         if(dup2(fdes[0], STDIN_FILENO) < 0)    //fdes[0] will be copied into STDIN and survive execvp
         {
             perror("dup() failed at fd[0]");
             exit(EXIT_FAILURE);
         }
+        close(fdes[1]);                 //close the write part of the pipe
+        close(fdes[0]);
         if((execvp(words2[0],command2) < 0))
         {
             perror("execv failed");
