@@ -107,6 +107,7 @@ struct Node * separate_lines( char* zeile, struct Node *HEAD, char *space)
 
 void check_parameter(char **words, char **command, char *space)
 {
+    
     if ( strcmp(words[1],space) == 0)
     {
         command[0] = words[0];

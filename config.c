@@ -25,7 +25,10 @@ void read_command()
     char space[2] = " ";
     char enter[2] = "\n";                         
     static struct Node *HEAD = NULL;
-    
+    char *global_variabels[32] = {"DISPLAY","HOME","PATH",
+                                "LOGNAME","PPID","PWD",
+                                "SHELL","USER","USERNAME",NULL};
+
     fgets(buffer, INPUT_SIZE, stdin);   
     token = strtok(buffer, enter);      //removes the "\n" at the end of the line
 
@@ -48,9 +51,7 @@ void read_command()
             return;
         else
         {
-            //1 because if there is no Pipe we muss handle just one Node
-            
-            exec_normal(HEAD);
+            exec_normal(HEAD, global_variabels);
         }
     }
 
@@ -60,7 +61,7 @@ void read_command()
     } 
 }
 
-void exec_normal(struct Node* HEAD)
+void exec_normal(struct Node* HEAD, char **global_variabels)
 {
     int status;
     pid_t pid,pid_child;
@@ -83,26 +84,27 @@ void exec_normal(struct Node* HEAD)
     {
         if(chdir(command[1]) < 0)
         {
-            perror("Directory could not be changed\n");
-            return;
+            perror("Directory not found\n");
+            exit(EXIT_FAILURE);
         }
+        return;
     }
 
     else if(strcmp(command[0],"export") == 0)
     {
         char *envnam = strtok(command[1], "=");
         command[1] = strtok(NULL, "=");
-        char *envvalue;
+        //char *envvalue;
 
         if ((look_for_variable(command[1])) == TRUE)
         {
             if((get_var_value(command[1])) == NULL)
                 return ;   
 
-            envvalue = command[1];
-            setenv(envnam,envvalue,1);
-            char *ausgabe = getenv(envnam);
-            printf("%s was given the value: %s\n",envnam , ausgabe);
+            //envvalue = command[1];
+            setenv(envnam,command[1],1);
+           // char *ausgabe = getenv(envnam);
+            printf("%s was given the value: %s\n",envnam , getenv(envnam));
         }
         else
         {
@@ -110,6 +112,25 @@ void exec_normal(struct Node* HEAD)
             return;
         }
     }
+    else if (strcmp(command[0],"set") == 0)
+    {
+        char **aux = global_variabels;
+        while(*aux != NULL)
+        {
+            if(strcmp(*aux,"PPID") == 0)
+                printf("%s=%d\n",*aux,getppid());
+            else if (strcmp(*aux,"SHELL") == 0)
+            {
+                setenv(*aux,"Praktikum-Shell",1);
+                printf("%s=%s\n",*aux,getenv(*aux));
+            }
+            else
+                printf("%s=%s\n",*aux,getenv(*aux));
+            aux++;
+        }
+        return;
+    }
+    
     else
     {  
     //Extern commands
@@ -228,5 +249,6 @@ void exec_pipe(struct Node* HEAD)
         }
     }
 }
+
 
 

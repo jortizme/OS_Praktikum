@@ -23,7 +23,8 @@ enum test    {FAILURE = 3, SUCCESS};
 
 void type_prompt();
 void read_command();
-void exec_normal(struct Node* HEAD);
+void exec_normal(struct Node* HEAD, char **global_variabels);
 void exec_pipe(struct Node* HEAD);
+
 
 #endif
