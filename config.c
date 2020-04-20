@@ -84,10 +84,17 @@ void exec_normal(struct Node* HEAD, struct Variable_Node *Variable_Head_List)
 
     else if(strcmp(command[0],"cd") == 0)
     {
-        if(chdir(command[1]) < 0)
+        if(command[1] == NULL)
+        {
+            if(chdir(getenv("HOME")) < 0)
+            {
+                perror("Failed finding /home\n");  
+            }
+        }
+            
+        else if(chdir(command[1]) < 0)
         {
             perror("Directory not found\n");
-            exit(EXIT_FAILURE);
         }
         return;
     }
