@@ -22,9 +22,8 @@ enum boolean {FALSE, TRUE};
 enum test    {FAILURE = 3, SUCCESS};
 
 void type_prompt();
-void read_command();
-void exec_normal(struct Node* HEAD, char **global_variabels);
+void read_command(struct Variable_Node *Variable_Head_List);
+void exec_normal(struct Node* HEAD,  struct Variable_Node *Variable_Head_List);
 void exec_pipe(struct Node* HEAD);
-
 
 #endif

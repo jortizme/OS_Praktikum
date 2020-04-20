@@ -18,16 +18,13 @@ void type_prompt()
     free(buf);
 }
 
-void read_command()
+void read_command(struct Variable_Node *Variable_Head_List)
 {
     char buffer[INPUT_SIZE];            
     char *token = NULL;
     char space[2] = " ";
     char enter[2] = "\n";                         
     static struct Node *HEAD = NULL;
-    char *global_variabels[32] = {"DISPLAY","HOME","PATH",
-                                "LOGNAME","PPID","PWD",
-                                "SHELL","USER","USERNAME",NULL};
 
     fgets(buffer, INPUT_SIZE, stdin);   
     token = strtok(buffer, enter);      //removes the "\n" at the end of the line
@@ -51,7 +48,7 @@ void read_command()
             return;
         else
         {
-            exec_normal(HEAD, global_variabels);
+            exec_normal(HEAD, Variable_Head_List);
         }
     }
 
@@ -61,12 +58,13 @@ void read_command()
     } 
 }
 
-void exec_normal(struct Node* HEAD, char **global_variabels)
+void exec_normal(struct Node* HEAD, struct Variable_Node *Variable_Head_List)
 {
     int status;
     pid_t pid,pid_child;
     char space[2] = " ";
     char *command[3];
+   
 
      //words[0]=>command,words[1]=>parameter 
     char **words = get_information(HEAD,1); //1 beause there is just one line 
@@ -75,6 +73,10 @@ void exec_normal(struct Node* HEAD, char **global_variabels)
    //Build-in commands
     if(strcmp(command[0],"exit") == 0)
     {
+        while(Variable_Head_List != NULL)
+        {
+            Variable_Head_List = delete_variable_list(Variable_Head_List);
+        }
         printf("exiting ...\n");
         exit(EXIT_SUCCESS);
 
@@ -94,16 +96,12 @@ void exec_normal(struct Node* HEAD, char **global_variabels)
     {
         char *envnam = strtok(command[1], "=");
         command[1] = strtok(NULL, "=");
-        //char *envvalue;
-
         if ((look_for_variable(command[1])) == TRUE)
         {
             if((get_var_value(command[1])) == NULL)
                 return ;   
-
-            //envvalue = command[1];
             setenv(envnam,command[1],1);
-           // char *ausgabe = getenv(envnam);
+            add_to_variable_list(Variable_Head_List,envnam);
             printf("%s was given the value: %s\n",envnam , getenv(envnam));
         }
         else
@@ -114,19 +112,23 @@ void exec_normal(struct Node* HEAD, char **global_variabels)
     }
     else if (strcmp(command[0],"set") == 0)
     {
-        char **aux = global_variabels;
-        while(*aux != NULL)
+        struct Variable_Node *aux1 = Variable_Head_List;
+        char *variable = NULL;
+        
+        while( aux1 != NULL)
         {
-            if(strcmp(*aux,"PPID") == 0)
-                printf("%s=%d\n",*aux,getppid());
-            else if (strcmp(*aux,"SHELL") == 0)
+            variable = aux1->var;
+            if(strcmp(variable,"PPID") == 0)
+                printf("%s=%d\n",variable,getppid());
+            else if (strcmp(variable,"SHELL") == 0)
             {
-                setenv(*aux,"Praktikum-Shell",1);
-                printf("%s=%s\n",*aux,getenv(*aux));
+                setenv(variable,"Praktikum-Shell",1);
+                printf("%s=%s\n",variable,getenv(variable));
             }
             else
-                printf("%s=%s\n",*aux,getenv(*aux));
-            aux++;
+                printf("%s=%s\n",variable,getenv(variable));
+            
+            aux1= aux1->next;
         }
         return;
     }
@@ -249,6 +251,4 @@ void exec_pipe(struct Node* HEAD)
         }
     }
 }
-
-
 
