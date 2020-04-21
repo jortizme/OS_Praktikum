@@ -1,7 +1,7 @@
 #include "config.h"
 
 
-void type_prompt()
+void TypePrompt()
 {
     long size;
     char *buf;
@@ -18,7 +18,7 @@ void type_prompt()
     free(buf);
 }
 
-void read_command(struct Variable_Node *Variable_Head_List)
+void ReadCommandLine(struct Variable_Node *Variable_Head_List)
 {
     char buffer[INPUT_SIZE];            
     char *token = NULL;
@@ -35,30 +35,30 @@ void read_command(struct Variable_Node *Variable_Head_List)
         return;
     }
 
-    else if (loof_for_pipe(token) == TRUE)
+    else if (LookForPipe(token) == TRUE)
     {   
-        if ((HEAD = separate_lines(token, HEAD, space)) != NULL)
+        if ((HEAD = SeparateLines(token, HEAD, space)) != NULL)
         {
-            exec_pipe(HEAD);
+            ExecutePipe(HEAD);
         }
     }
     else
     {
-        if((HEAD = separate_cmd_pmt(token, HEAD, space)) == NULL)
+        if((HEAD = SeparateCmdAndPmt(token, HEAD, space)) == NULL)
             return;
         else
         {
-            exec_normal(HEAD, Variable_Head_List);
+            ExecuteNormalLine(HEAD, Variable_Head_List);
         }
     }
 
     while( HEAD != NULL )
     {
-        HEAD = delete_list(HEAD);
+        HEAD = DeleteLineList(HEAD);
     } 
 }
 
-void exec_normal(struct Node* HEAD, struct Variable_Node *Variable_Head_List)
+void ExecuteNormalLine(struct Node* HEAD, struct Variable_Node *Variable_Head_List)
 {
     int status;
     pid_t pid,pid_child;
@@ -66,16 +66,16 @@ void exec_normal(struct Node* HEAD, struct Variable_Node *Variable_Head_List)
     char *command[4];
    
 
-     //words[0]=>command,words[1]=>parameter 
-    char **words = get_information(HEAD,1); //1 beause there is just one line 
-    check_parameter(words, command, space);
+     //words[0]=>command,words[1]=>parameter , words[2]=>parameter
+    char **words = GetLineInfo(HEAD,1); //1 beause there is just one line 
+    AssignWords(words, command, space);
 
    //Build-in commands
     if(strcmp(command[0],"exit") == 0)
     {
         while(Variable_Head_List != NULL)
         {
-            Variable_Head_List = delete_variable_list(Variable_Head_List);
+            Variable_Head_List = DeleteVariableList(Variable_Head_List);
         }
         printf("exiting ...\n");
         exit(EXIT_SUCCESS);
@@ -100,34 +100,22 @@ void exec_normal(struct Node* HEAD, struct Variable_Node *Variable_Head_List)
 
     else if(strcmp(command[0],"export") == 0)
     {
-        /*char *envnam = strtok(command[1], "=");
-        command[1] = strtok(NULL, "=");
-        if ((look_for_variable(command[1])) == TRUE)
-        {
-            if((get_var_value(command[1])) == NULL)
-                return ;     
-        }
-        setenv(envnam,command[1],1);
-        add_to_variable_list(Variable_Head_List,envnam);
-        printf("%s was given the value: %s\n",envnam , getenv(envnam));
-        */
-
-       if(look_for_assignment(command[1]) == TRUE)
+       if(LookForAssignment(command[1]) == TRUE)
        {    
             char *envnam = strtok(command[1], "=");
             command[1] = strtok(NULL, "=");
 
-            if ((look_for_variable(command[1])) == TRUE)
+            if ((IsVariable(command[1])) == TRUE)
             {
-                if((get_var_value(command[1])) == NULL)
+                if((GetVariableValue(command[1])) == NULL)
                     return ;     
             }
             else
             {
-                get_string_assingment(envnam,command[1]);
+                GetStringAssignment(envnam,command[1]);
             }
             setenv(envnam,command[1],1);
-            add_to_variable_list(Variable_Head_List,envnam);
+            AddVariableToList(Variable_Head_List,envnam);
             printf("%s was given the value: %s\n",envnam , getenv(envnam));         
        }
     }
@@ -184,7 +172,7 @@ void exec_normal(struct Node* HEAD, struct Variable_Node *Variable_Head_List)
         } 
     }
 }
-void exec_pipe(struct Node* HEAD)
+void ExecutePipe(struct Node* HEAD)
 {
     int status1, status2;
     pid_t child1,child2;
@@ -194,10 +182,10 @@ void exec_pipe(struct Node* HEAD)
     int fdes[2];
 
      //words[0]=>command,words[1]=>parameter 
-    char **words1 = get_information(HEAD,1); //1 beause there is just one line
-    char **words2 = get_information(HEAD,2);
-    check_parameter(words1, command1, space);
-    check_parameter(words2, command2, space);
+    char **words1 = GetLineInfo(HEAD,1); //1 beause there is just one line
+    char **words2 = GetLineInfo(HEAD,2);
+    AssignWords(words1, command1, space);
+    AssignWords(words2, command2, space);
    
 //Extern commands
     if (pipe(fdes) == -1)   //create the pipe and initialize fdes[0] and fdes[1]

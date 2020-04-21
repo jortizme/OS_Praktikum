@@ -1,6 +1,6 @@
 #include "line_modification.h"
 
-int look_for_variable(const char *pmt)
+int IsVariable(const char *pmt)
 {
     if ( pmt[0] == '$' )
         return TRUE;
@@ -8,7 +8,7 @@ int look_for_variable(const char *pmt)
         return FALSE;
 }
 
-int check_if_executable(const char *cmd)
+int IsExecutableProgramm(const char *cmd)
 {
     if(cmd[0] =='.')
         return TRUE;
@@ -16,7 +16,7 @@ int check_if_executable(const char *cmd)
         return FALSE;
 }
 
-int look_for_assignment(const char *pmt)
+int LookForAssignment(const char *pmt)
 {
     int cnt = 0;
 
@@ -32,7 +32,7 @@ int look_for_assignment(const char *pmt)
     return FALSE;
 }
 
-void get_string_assingment(char* name, char* pmt)
+void GetStringAssignment(char* name, char* pmt)
 {
     char* aux1 = pmt;
     char* aux2 = aux1;
@@ -51,7 +51,7 @@ void get_string_assingment(char* name, char* pmt)
     }
 }
 
-char* get_var_value(char *pmt)
+char* GetVariableValue(char *pmt)
 {
     char *varname = pmt;
     varname = varname + 1;
@@ -68,7 +68,7 @@ char* get_var_value(char *pmt)
     }
 }
 
-struct Node * separate_cmd_pmt(char* token, struct Node *HEAD, char **space)
+struct Node* SeparateCmdAndPmt(char* token, struct Node *HEAD, char **space)
 {
     int cnt = 0;
     char *words[3] = {NULL, NULL, NULL};
@@ -101,38 +101,38 @@ struct Node * separate_cmd_pmt(char* token, struct Node *HEAD, char **space)
 
     //check if the parameter is a variable, if it is get the value
     //and overwrite the initial parameter value 
-    if(look_for_variable(words[0]) == TRUE)
+    if(IsVariable(words[0]) == TRUE)
     {
-        if ((get_var_value(words[0]) == NULL))
+        if ((GetVariableValue(words[0]) == NULL))
             return NULL;
     }
-    else if (check_if_executable(words[0]) == TRUE)
+    else if (IsExecutableProgramm(words[0]) == TRUE)
     {
         exec = realpath(words[0], NULL);
         strcpy(words[0],exec);
     }
         
-    if( (look_for_variable(words[1])) == TRUE)                                           
+    if( (IsVariable(words[1])) == TRUE)                                           
     {
-        if ((get_var_value(words[1]) == NULL))
+        if ((GetVariableValue(words[1]) == NULL))
             return NULL;
     }
 
-    if( (look_for_variable(words[2])) == TRUE)                                           
+    if( (IsVariable(words[2])) == TRUE)                                           
     {
-        if ((get_var_value(words[2]) == NULL))
+        if ((GetVariableValue(words[2]) == NULL))
             return NULL;
     }
 
 
-    HEAD = add_to_list(HEAD, words);
+    HEAD = AddLineToList(HEAD, words);
 
     return HEAD;
 }
 
-int loof_for_pipe(char *line)
+int LookForPipe(const char *line)
 {
-    char *aux_line = line;
+    const char *aux_line = line;
     while (*aux_line != '|' && *aux_line != '\0')
     {
         aux_line++;
@@ -142,7 +142,7 @@ int loof_for_pipe(char *line)
    return FALSE;  
 }
 
-struct Node * separate_lines( char* zeile, struct Node *HEAD, char **space)
+struct Node * SeparateLines( char* zeile, struct Node *HEAD, char **space)
 {    
    char *aux = zeile;
    char *before_aux = aux - 1;
@@ -160,12 +160,12 @@ struct Node * separate_lines( char* zeile, struct Node *HEAD, char **space)
                printf("Only one pipe is allowed\n");
                 while( HEAD != NULL )
                 {
-                    HEAD = delete_list(HEAD);
+                    HEAD = DeleteLineList(HEAD);
                 } 
                return NULL;
            }
             *before_aux = '\0';
-            if ((HEAD = separate_cmd_pmt(kopf_zeile,HEAD ,space)) == NULL)
+            if ((HEAD = SeparateCmdAndPmt(kopf_zeile,HEAD ,space)) == NULL)
                 return NULL;
             aux = after_aux + 1;
             after_aux = aux + 1;
@@ -174,7 +174,7 @@ struct Node * separate_lines( char* zeile, struct Node *HEAD, char **space)
        }
        else if (*after_aux == '\0')
        {
-            if ((HEAD = separate_cmd_pmt(kopf_zeile,HEAD, space)) == NULL)
+            if ((HEAD = SeparateCmdAndPmt(kopf_zeile,HEAD, space)) == NULL)
                 return NULL;    
        }
        
@@ -186,7 +186,7 @@ struct Node * separate_lines( char* zeile, struct Node *HEAD, char **space)
     return HEAD;
 }
 
-void check_parameter(char **words, char **command, char *space)
+void AssignWords(char **words, char **command, char *space)
 {
     if (strcmp(words[1],space) == 0)
     {

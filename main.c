@@ -19,15 +19,14 @@ int main ()
     //Initialization of global variable List
     while (aux[cnt] != NULL)
     {
-        Variable_Head_List = add_to_variable_list(Variable_Head_List, aux[cnt]);
+        Variable_Head_List = AddVariableToList(Variable_Head_List, aux[cnt]);
         cnt++;
     }
     
-   //struct Variable_Node *Variable_Head_List = NULL;
     while(1)
     {
-        type_prompt();
-        read_command(Variable_Head_List);
+        TypePrompt();
+        ReadCommandLine(Variable_Head_List);
     }
    return 0;
 }

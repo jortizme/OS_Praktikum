@@ -16,14 +16,13 @@
 #include "line_modification.h"
 
 #define INPUT_SIZE 512
-#define COMMAND_PATH_SIZE 32
 
 enum boolean {FALSE, TRUE};
 enum test    {FAILURE = 3, SUCCESS};
 
-void type_prompt();
-void read_command(struct Variable_Node *Variable_Head_List);
-void exec_normal(struct Node* HEAD,  struct Variable_Node *Variable_Head_List);
-void exec_pipe(struct Node* HEAD);
+void TypePrompt();
+void ReadCommandLine(struct Variable_Node *Variable_Head_List);
+void ExecuteNormalLine(struct Node* HEAD,  struct Variable_Node *Variable_Head_List);
+void ExecutePipe(struct Node* HEAD);
 
 #endif

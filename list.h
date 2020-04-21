@@ -18,10 +18,10 @@ struct Variable_Node                //new list to store global variables
     struct Variable_Node *next;
 };
 
-struct Node* add_to_list( struct Node *begin, char **cmd );
-struct Node* delete_list( struct Node *begin );
-char** get_information ( struct Node *begin, int stelle);
-struct Variable_Node* add_to_variable_list(struct Variable_Node *begin, char *variable);
-struct Variable_Node* delete_variable_list(struct Variable_Node *begin);
+struct Node* AddLineToList( struct Node *begin, char **cmd );
+struct Node* DeleteLineList( struct Node *begin );
+char** GetLineInfo( struct Node *begin, int stelle);
+struct Variable_Node* AddVariableToList(struct Variable_Node *begin, char *variable);
+struct Variable_Node* DeleteVariableList(struct Variable_Node *begin);
 
 #endif

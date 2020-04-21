@@ -1,6 +1,6 @@
 #include "list.h"
 
-struct Node* add_to_list( struct Node *begin, char **cmd )
+struct Node* AddLineToList( struct Node *begin, char **cmd )
 {
     struct Node *item = ( struct Node*)malloc(sizeof(struct Node));
     item->info[0] = cmd[0];
@@ -33,7 +33,7 @@ struct Node* add_to_list( struct Node *begin, char **cmd )
 }
 //eine while Schleife machen und diese Funktion
 //aufrufen solange begin != NULL ist
-struct Node* delete_list( struct Node *begin )                           
+struct Node* DeleteLineList( struct Node *begin )                           
 {
     struct Node *aux = begin;
     begin = begin->next;
@@ -41,7 +41,7 @@ struct Node* delete_list( struct Node *begin )
     return begin;
 }
 
-char** get_information(struct Node *begin, int stelle)
+char** GetLineInfo(struct Node *begin, int stelle)
 {
     struct Node* aux = begin;
 
@@ -53,7 +53,7 @@ char** get_information(struct Node *begin, int stelle)
     return aux->info;
 }
 
-struct Variable_Node* add_to_variable_list(struct Variable_Node *begin, char *variable)
+struct Variable_Node* AddVariableToList(struct Variable_Node *begin, char *variable)
 {
 
     struct Variable_Node *loof_for_variable = begin;
@@ -91,7 +91,7 @@ struct Variable_Node* add_to_variable_list(struct Variable_Node *begin, char *va
     return begin;
 }
 
-struct Variable_Node* delete_variable_list(struct Variable_Node *begin)
+struct Variable_Node* DeleteVariableList(struct Variable_Node *begin)
 {
     struct Variable_Node *aux = begin;
     begin = begin->next;
