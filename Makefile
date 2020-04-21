@@ -4,13 +4,13 @@
 
 # Compiler settings - Can be customized.
 CC = gcc
-CXXFLAGS = -std=c11 -Wall -g
+CXXFLAGS = -std=c11 -Wall 
 LDFLAGS = 
 
 # Makefile settings - Can be customized.
 APPNAME = Shell
 EXT = .c
-SRCDIR = /home/jortizme/Praktikum_OS/5_Aufgabe
+SRCDIR = src
 OBJDIR = obj
 
 ############## Do not change anything from here downwards! #############
