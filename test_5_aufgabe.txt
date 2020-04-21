@@ -1,0 +1,202 @@
+//Veranstaltung: Betriebssysteme 
+//Name, Matrikel-Nr: Joaquin Alejandro Ortiz Meza - 835862
+              
+//Datum: 21.04.2020
+//joaquin.ortiz-meza@hs-osnabrueck.de 
+
+--Verbesserungen der 4-Aufgabe wurden vorgenommen!
+
+Test zur Frage 2.a)
+
+yes | cat -n | (sleep 10; tee buff.txt)
+
+     1	y
+     2	y
+     3	y
+     4	y
+     5	y
+     6	y
+     7	y
+     8	y
+     9	y
+    10	y
+
+Der Prozess yes wurde 10 Sekunden lang blockiert bis der
+Prozess tee laufen konnte. D.h in solchen Fällen, wenn der erste
+Prozess mehr Daten sendet als der zweite konsumieren kann muss der
+erste Prozess warten bis er wieder freigegeben wird.
+
+Test zur Frage 2.b)
+
+In diesem Befehl befinden sich keine Daten in der Pipe, da tail auf das Ende des outputs
+von cat -n wartet. Erst wenn den cat -n Prozess gekilled wird, dann gibt Tail etwas aus.
+Also die linke Pipe hat Daten gesendet, die rechte hat gewartet, bis Daten da waren.
+
+yes | cat -n | tail
+
+338601159	y
+338601160	y
+338601161	y
+338601162	y
+338601163	y
+338601164	y
+338601165	y
+338601166	y
+338601167	y
+338601168
+
+Test zur Frage 2.c)
+
+Wenn der erste Prozess beendet wird, dann terminiert die Pipe ganz normal und die rechte Seite
+schließt somit auch. Wird aber der zweite Process plötzlich gekilled, dann dauert es ein Moment
+bis der erste Prozess das merkt und gesendete Daten gehen verloren.
+
+yes | cat -n | tee buff.txt
+
+-yes Prozess wird gekilled:
+
+Pufferstand vom buff.txt am Ende:
+
+4497399	y
+4497400	y
+4497401	y
+4497402	y
+4497403	y
+4497404	y
+4497405	y
+4497406	y
+4497407	y
+4497408	y
+
+Gebliebener Pufferstand vom yes:
+
+4497402	y
+4497403	y
+4497404	y
+4497405	y
+4497406	y
+4497407	y
+4497408	y
+
+Keine Daten gingen verloren.
+
+--Jetzt wird aber der dritte Prozess gekilled:
+
+Pufferstand vom buff.txt am Ende
+
+2736177	y
+2736178	y
+2736179	y
+2736180	y
+2736181	y
+2736182	y
+2736183	y
+2736184	y
+2736185	y
+27361
+
+Gebliebener Pufferstand vom yes
+
+2736793	y
+2736794	y
+2736795	y
+2736796	y
+2736797	y
+2736798	y
+2736799	y
+2736800	y
+Killed
+
+Hier ist deutlich zu sehen, dass yes Daten gesendet hat, die der Puffer nicht aufnehmen
+konnte, es gingen also Daten verloren.
+
+Test zur Frage 2.d): 
+
+Mit dem Befehl-> yes | cat -n | tee buff.txt 
+wurden alle Prozesse gekilled, sobald der Elternprozess
+auch gekilled wurde.
+
+Wird aber der Befehl folgendermaßen geschrieben:
+
+-yes | cat -n | tee buff.txt &
+
+werden die Prozesse im Hintergrund ausgeführt, d.h der Elterprozess
+wartet nicht bis die Kindprozessen terminieren. Wird der Eltern gekilled,
+dann bekommen die Kinder einen neuen Elterprozess.
+
+--Nach dem Befehl-> yes | cat -n | tee buff.txt & :
+
+jortizme  7946  7481  0 19:42 pts/1    00:00:00 yes
+jortizme  7947  7481  1 19:42 pts/1    00:00:00 cat -n
+jortizme  7948  7481 38 19:42 pts/1    00:00:10 tee buff.txt
+
+Die Prozesse laufen ganz normal mit ihrem Elternprozess (bash) 
+7481. Wird aber danach die bash gekilled sieht das folgendermaßen aus:
+
+jortizme  7946  1660  0 19:42 ?        00:00:00 yes
+jortizme  7947  1660  4 19:42 ?        00:00:01 cat -n
+jortizme  7948  1660 37 19:42 ?        00:00:16 tee buff.txt
+
+Die Kindprozessen sind nicht beendet worden, stattdessen haben sie 
+einen neuen Elternprozess 1660 bekommen.
+
+  PID TTY      STAT   TIME COMMAND
+ 1660 ?        Ss     0:00 /lib/systemd/systemd --user
+
+-Frage 2.e): 
+
+Um die Richtung des Datentransfers zu verändern, müssen
+beide Prozesse ihre Dateideskriptoren zum Datentransfer
+tauschen. Dafür muss der Eltern eine neue Pipe anlegen.
+
+
+Test der Pipeline mit dem eigenen Shell:
+
+-ls -als | more:
+
+jortizme@/home/jortizme> ls -als | more
+
+total 5059880
+      4 drwxr-xr-x 48 jortizme jortizme       4096 Apr 21 19:54 .
+      4 drwxr-xr-x  3 root     root           4096 Dec  6 14:43 ..
+      4 drwx------  3 jortizme jortizme       4096 Dec  8 20:47 .adobe
+      4 drwxrwxr-x  4 jortizme jortizme       4096 Feb 16 13:02 Arduino
+      4 drwxrwxr-x  4 jortizme jortizme       4096 Mar 22 14:55 .arduino15
+      4 drwxrwxr-x  8 jortizme jortizme       4096 Apr  2 23:57 .atom
+     24 -rw-------  1 jortizme jortizme      24158 Apr 21 19:52 .bash_history
+      4 -rw-r--r--  1 jortizme jortizme        220 Dec  6 14:43 .bash_logout
+  
+      4 drwxr-xr-x  2 jortizme jortizme       4096 Dec  6 15:55 .fontconfig
+      4 -rw-r--r--  1 jortizme jortizme         53 Apr  2 11:31 .gitconfig
+      4 drwx------  3 jortizme jortizme       4096 Dec  7 19:20 .gnome
+      4 drwx------  3 jortizme jortizme       4096 Dec  6 15:58 .gnupg
+      4 drwxr-xr-x  2 jortizme jortizme       4096 Mar 10 15:14 .gphoto
+     56 -rw-------  1 jortizme jortizme      49552 Apr 21 15:29 .ICEauthority
+      4 drwxr-xr-x  3 jortizme jortizme       4096 Apr  1 12:57 intelFPGA_pro
+      4 drwxr-xr-x  3 jortizme jortizme       4096 Dec  7 12:24 .java
+--More--
+
+- ps -ef | grep bash
+
+jortizme@/home/jortizme/Praktikum_OS/5_Aufgabe> ps -ef | grep bash
+
+jortizme  8282  8130  0 19:52 pts/1    00:00:00 /bin/bash
+jortizme  8524  8514  0 19:59 pts/1    00:00:00 grep bash
+
+-ps -ef | tail
+
+jortizme@/home/jortizme/Praktikum_OS/5_Aufgabe> ps -ef | tail
+
+root      8931     2  0 20:17 ?        00:00:00 [kworker/4:0-eve]
+root      8932     2  0 20:17 ?        00:00:00 [kworker/4:3-eve]
+jortizme  8939  8234  0 20:17 ?        00:00:00 /home/jortizme/.vscode/extensions/ms-vscode.cpptools-0.27.0/bin/cpptools-srv 8234 2
+root      8971     2  0 20:18 ?        00:00:00 [kworker/0:0-eve]
+root      8974     2  0 20:18 ?        00:00:00 [kworker/6:0-eve]
+jortizme  9008  8130  0 20:19 pts/0    00:00:00 /bin/bash
+root      9042     2  0 20:19 ?        00:00:00 [kworker/3:2]
+jortizme  9043  9008  0 20:19 pts/0    00:00:00 ./Shell
+jortizme  9052  9043  0 20:19 pts/0    00:00:00 ps -ef
+jortizme  9053  9043  0 20:19 pts/0    00:00:00 tail
+
+
+

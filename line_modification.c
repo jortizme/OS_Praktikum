@@ -133,11 +133,18 @@ struct Node * separate_lines( char* zeile, struct Node *HEAD, char **space)
    char *before_aux = aux - 1;
    char *after_aux = aux + 1;
    char *kopf_zeile = aux;
+   int cnt = 0;
 
    while( *aux != '\0')
    {
        if( *aux == '|' )
-       {
+       {    
+           cnt++;
+           if(cnt > 1)
+           {
+               printf("Only one pipe is allowed\n");
+               return NULL;
+           }
             *before_aux = '\0';
             if ((HEAD = separate_cmd_pmt(kopf_zeile,HEAD ,space)) == NULL)
                 return NULL;
