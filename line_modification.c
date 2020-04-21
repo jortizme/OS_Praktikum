@@ -5,7 +5,42 @@ int look_for_variable(const char *pmt)
     if ( pmt[0] == '$' )
         return TRUE;
     else
-        return FALSE;    
+        return FALSE;
+}
+
+int look_for_assignment(const char *pmt)
+{
+    int cnt = 0;
+
+    while(pmt[cnt] != '\0')
+    {
+        if(pmt[cnt] == '=')
+            return TRUE;
+
+        cnt++;
+    }
+
+    printf("There is no assignment '=' ...\n");
+    return FALSE;
+}
+
+void get_string_assingment(char* name, char* pmt)
+{
+    char* aux1 = pmt;
+    char* aux2 = aux1;
+
+    while(*aux2 != '\0')
+    {
+        if(*aux2 == '=')
+        {
+            *aux2 ='\0';
+            name = aux1;
+            pmt = aux2 + 1;
+            return;
+        
+        }
+        aux2++;
+    }
 }
 
 char* get_var_value(char *pmt)
@@ -48,7 +83,13 @@ struct Node * separate_cmd_pmt(char* token, struct Node *HEAD, char *space)
         words[1] = space;
 
     //check if the parameter is a variable, if it is get the value
-    //and overwrite the initial parameter value     
+    //and overwrite the initial parameter value 
+    if(look_for_variable(words[0]) == TRUE)
+    {
+        if ((get_var_value(words[0]) == NULL))
+            return NULL;
+    }    
+
     if( (look_for_variable(words[1])) == TRUE)                                           
     {
         if ((get_var_value(words[1]) == NULL))

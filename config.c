@@ -96,27 +96,42 @@ void exec_normal(struct Node* HEAD, struct Variable_Node *Variable_Head_List)
         {
             perror("Directory not found\n");
         }
-        return;
     }
 
     else if(strcmp(command[0],"export") == 0)
     {
-        char *envnam = strtok(command[1], "=");
+        /*char *envnam = strtok(command[1], "=");
         command[1] = strtok(NULL, "=");
         if ((look_for_variable(command[1])) == TRUE)
         {
             if((get_var_value(command[1])) == NULL)
-                return ;   
+                return ;     
+        }
+        setenv(envnam,command[1],1);
+        add_to_variable_list(Variable_Head_List,envnam);
+        printf("%s was given the value: %s\n",envnam , getenv(envnam));
+        */
+
+       if(look_for_assignment(command[1]) == TRUE)
+       {    
+            char *envnam = strtok(command[1], "=");
+            command[1] = strtok(NULL, "=");
+
+            if ((look_for_variable(command[1])) == TRUE)
+            {
+                if((get_var_value(command[1])) == NULL)
+                    return ;     
+            }
+            else
+            {
+                get_string_assingment(envnam,command[1]);
+            }
             setenv(envnam,command[1],1);
             add_to_variable_list(Variable_Head_List,envnam);
-            printf("%s was given the value: %s\n",envnam , getenv(envnam));
-        }
-        else
-        {
-            printf("No variable $... recognized...\n");
-            return;
-        }
+            printf("%s was given the value: %s\n",envnam , getenv(envnam));         
+       }
     }
+
     else if (strcmp(command[0],"set") == 0)
     {
         struct Variable_Node *aux1 = Variable_Head_List;
