@@ -10,8 +10,8 @@
 int main ()
 {   
     char *main_global_variables[16] = {"DISPLAY","HOME","PATH",
-                                    "LOGNAME","PPID","PWD",
-                                    "SHELL","USER","USERNAME", NULL};
+                                        "LOGNAME","SHELL","USER",
+                                        "USERNAME", NULL};
     struct Variable_Node *Variable_Head_List = NULL;
     char **aux = main_global_variables;
     int cnt = 0;

@@ -60,27 +60,35 @@ char* get_var_value(char *pmt)
     }
 }
 
-struct Node * separate_cmd_pmt(char* token, struct Node *HEAD, char *space)
+struct Node * separate_cmd_pmt(char* token, struct Node *HEAD, char **space)
 {
     int cnt = 0;
-    char *words[2] = {NULL, NULL};
+    char *words[3] = {NULL, NULL, NULL};
    
-    token = strtok(token, space);
+    token = strtok(token, space[0]);
        
-    while ( token != NULL && cnt < 2 )  //only 2 words are allowed 
+    while ( token != NULL && cnt < 3 )  //only 2 words are allowed 
     {
         if( cnt == 0)
             words[0] = token;
                 
         else if ( cnt == 1 )
             words[1] = token;
+        
+        else if ( cnt == 2 )
+            words[2] = token;
                        
-        token = strtok(NULL, space);
+        token = strtok(NULL, space[0]);
         ++cnt;
     } 
 
     if( words[1] == NULL )
-        words[1] = space;
+        words[1] = space[0];
+
+    if (words[2] == NULL)
+        words[2] = space[1];
+   
+    
 
     //check if the parameter is a variable, if it is get the value
     //and overwrite the initial parameter value 
@@ -95,6 +103,12 @@ struct Node * separate_cmd_pmt(char* token, struct Node *HEAD, char *space)
         if ((get_var_value(words[1]) == NULL))
             return NULL;
     }
+    if( (look_for_variable(words[2])) == TRUE)                                           
+    {
+        if ((get_var_value(words[2]) == NULL))
+            return NULL;
+    }
+
 
     HEAD = add_to_list(HEAD, words);
 
@@ -113,7 +127,7 @@ int loof_for_pipe(char *line)
    return FALSE;  
 }
 
-struct Node * separate_lines( char* zeile, struct Node *HEAD, char *space)
+struct Node * separate_lines( char* zeile, struct Node *HEAD, char **space)
 {    
    char *aux = zeile;
    char *before_aux = aux - 1;
@@ -148,16 +162,21 @@ struct Node * separate_lines( char* zeile, struct Node *HEAD, char *space)
 
 void check_parameter(char **words, char **command, char *space)
 {
-    
-    if ( strcmp(words[1],space) == 0)
+    if (strcmp(words[1],space) == 0)
     {
         command[0] = words[0];
         command[1] = NULL;
     }
-    else
+    else if (strcmp(words[2],space) == 0)
     {
         command[0] = words[0];
         command[1] = words[1];
         command[2] = NULL;
+    }
+    else{
+        command[0] = words[0];
+        command[1] = words[1];
+        command[2] = words[2];
+        command[3] = NULL;
     }
 }

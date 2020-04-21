@@ -5,6 +5,8 @@ struct Node* add_to_list( struct Node *begin, char **cmd )
     struct Node *item = ( struct Node*)malloc(sizeof(struct Node));
     item->info[0] = cmd[0];
     item->info[1] = cmd[1];
+    item->info[2] = cmd[2];
+
     struct Node *aux1 = begin;
     struct Node *aux2 = NULL;
 

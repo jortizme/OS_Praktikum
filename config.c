@@ -22,7 +22,7 @@ void read_command(struct Variable_Node *Variable_Head_List)
 {
     char buffer[INPUT_SIZE];            
     char *token = NULL;
-    char space[2] = " ";
+    char *space[2] = { " ", " " };
     char enter[2] = "\n";                         
     static struct Node *HEAD = NULL;
 
@@ -63,7 +63,7 @@ void exec_normal(struct Node* HEAD, struct Variable_Node *Variable_Head_List)
     int status;
     pid_t pid,pid_child;
     char space[2] = " ";
-    char *command[3];
+    char *command[4];
    
 
      //words[0]=>command,words[1]=>parameter 
@@ -140,9 +140,7 @@ void exec_normal(struct Node* HEAD, struct Variable_Node *Variable_Head_List)
         while( aux1 != NULL)
         {
             variable = aux1->var;
-            if(strcmp(variable,"PPID") == 0)
-                printf("%s=%d\n",variable,getppid());
-            else if (strcmp(variable,"SHELL") == 0)
+            if (strcmp(variable,"SHELL") == 0)
             {
                 setenv(variable,"Praktikum-Shell",1);
                 printf("%s=%s\n",variable,getenv(variable));
