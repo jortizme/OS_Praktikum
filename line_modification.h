@@ -13,5 +13,6 @@ struct Node * separate_lines(char* zeile, struct Node *HEAD, char** space);
 void check_parameter(char **words, char **command, char *space);
 int look_for_assignment(const char *pmt);
 void get_string_assingment(char* name, char* pmt);
+int check_if_executable(const char *cmd);
 
 #endif

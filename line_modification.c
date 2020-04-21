@@ -8,6 +8,14 @@ int look_for_variable(const char *pmt)
         return FALSE;
 }
 
+int check_if_executable(const char *cmd)
+{
+    if(cmd[0] =='.')
+        return TRUE;
+    else
+        return FALSE;
+}
+
 int look_for_assignment(const char *pmt)
 {
     int cnt = 0;
@@ -64,6 +72,7 @@ struct Node * separate_cmd_pmt(char* token, struct Node *HEAD, char **space)
 {
     int cnt = 0;
     char *words[3] = {NULL, NULL, NULL};
+    char *exec = NULL;
    
     token = strtok(token, space[0]);
        
@@ -96,13 +105,19 @@ struct Node * separate_cmd_pmt(char* token, struct Node *HEAD, char **space)
     {
         if ((get_var_value(words[0]) == NULL))
             return NULL;
-    }    
-
+    }
+    else if (check_if_executable(words[0]) == TRUE)
+    {
+        exec = realpath(words[0], NULL);
+        strcpy(words[0],exec);
+    }
+        
     if( (look_for_variable(words[1])) == TRUE)                                           
     {
         if ((get_var_value(words[1]) == NULL))
             return NULL;
     }
+
     if( (look_for_variable(words[2])) == TRUE)                                           
     {
         if ((get_var_value(words[2]) == NULL))
