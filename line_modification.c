@@ -143,6 +143,10 @@ struct Node * separate_lines( char* zeile, struct Node *HEAD, char **space)
            if(cnt > 1)
            {
                printf("Only one pipe is allowed\n");
+                while( HEAD != NULL )
+                {
+                    HEAD = delete_list(HEAD);
+                } 
                return NULL;
            }
             *before_aux = '\0';
