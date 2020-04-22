@@ -5,7 +5,7 @@
 //Datum: 14.04.2020
 //joaquin.ortiz-meza@hs-osnabrueck.de - marcel.mazeewski@hs-osnabrueck.de
 
-#include "config.h"
+#include "include/config.h"
 
 int main ()
 {   

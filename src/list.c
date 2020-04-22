@@ -1,4 +1,4 @@
-#include "list.h"
+#include "include/list.h"
 
 struct Node* AddLineToList( struct Node *begin, char **cmd )
 {
