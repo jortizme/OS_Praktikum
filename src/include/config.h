@@ -17,6 +17,7 @@
 
 #define INPUT_SIZE 512
 
+
 enum boolean {FALSE, TRUE};
 enum test    {FAILURE = 3, SUCCESS};
 

@@ -5,10 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX_LINE_AMOUNT 6
+
  struct Node
 {
     int position;       //to numerate the number of commands (if pipelining)
-    char *info[3];      //info[0]=>command, info[1]=>parameter,info[2]=>parameter
+    char* info[MAX_LINE_AMOUNT];      //info[0]=>command, info[1]=>parameter,info[2]=>parameter
     struct Node *next;  //points to the next command line"
 };
 

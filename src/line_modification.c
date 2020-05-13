@@ -16,21 +16,6 @@ int IsExecutableProgramm(const char *cmd)
         return FALSE;
 }
 
-int LookForAssignment(const char *pmt)
-{
-    int cnt = 0;
-
-    while(pmt[cnt] != '\0')
-    {
-        if(pmt[cnt] == '=')
-            return TRUE;
-
-        cnt++;
-    }
-
-    printf("There is no assignment '=' ...\n");
-    return FALSE;
-}
 
 void GetStringAssignment(char* name, char* pmt)
 {
@@ -71,33 +56,16 @@ char* GetVariableValue(char *pmt)
 struct Node* SeparateCmdAndPmt(char* token, struct Node *HEAD, char **space)
 {
     int cnt = 0;
-    char *words[3] = {NULL, NULL, NULL};
+    char *words[MAX_LINE_AMOUNT] = {NULL, NULL, NULL, NULL, NULL, NULL};
     char *exec = NULL;
    
     token = strtok(token, space[0]);
-       
-    while ( token != NULL && cnt < 3 )  //only 2 words are allowed 
-    {
-        if( cnt == 0)
-            words[0] = token;
-                
-        else if ( cnt == 1 )
-            words[1] = token;
-        
-        else if ( cnt == 2 )
-            words[2] = token;
-                       
-        token = strtok(NULL, space[0]);
-        ++cnt;
-    } 
-
-    if( words[1] == NULL )
-        words[1] = space[0];
-
-    if (words[2] == NULL)
-        words[2] = space[1];
-   
     
+    for(int i = 0; i < MAX_LINE_AMOUNT && token != NULL; i++ )
+    {
+        words[i]  = token;
+        token = strtok(NULL, space[0]);
+    }
 
     //check if the parameter is a variable, if it is get the value
     //and overwrite the initial parameter value 
@@ -111,35 +79,19 @@ struct Node* SeparateCmdAndPmt(char* token, struct Node *HEAD, char **space)
         exec = realpath(words[0], NULL);
         strcpy(words[0],exec);
     }
-        
-    if( (IsVariable(words[1])) == TRUE)                                           
+    
+    for( int i = 1; i < MAX_LINE_AMOUNT && words[i] != NULL; i++)
     {
-        if ((GetVariableValue(words[1]) == NULL))
-            return NULL;
+        if( (IsVariable(words[i])) == TRUE)                                           
+        {
+            if ((GetVariableValue(words[i]) == NULL))
+                return NULL;
+        }
     }
-
-    if( (IsVariable(words[2])) == TRUE)                                           
-    {
-        if ((GetVariableValue(words[2]) == NULL))
-            return NULL;
-    }
-
 
     HEAD = AddLineToList(HEAD, words);
 
     return HEAD;
-}
-
-int LookForPipe(const char *line)
-{
-    const char *aux_line = line;
-    while (*aux_line != '|' && *aux_line != '\0')
-    {
-        aux_line++;
-        if(*aux_line == '|')
-            return TRUE; 
-    }
-   return FALSE;  
 }
 
 struct Node * SeparateLines( char* zeile, struct Node *HEAD, char **space)
@@ -188,21 +140,12 @@ struct Node * SeparateLines( char* zeile, struct Node *HEAD, char **space)
 
 void AssignWords(char **words, char **command, char *space)
 {
-    if (strcmp(words[1],space) == 0)
+    int i;
+
+    for(i = 0; i < MAX_LINE_AMOUNT && words[i] != NULL; i++)
     {
-        command[0] = words[0];
-        command[1] = NULL;
+        command[i] = words[i];
     }
-    else if (strcmp(words[2],space) == 0)
-    {
-        command[0] = words[0];
-        command[1] = words[1];
-        command[2] = NULL;
-    }
-    else{
-        command[0] = words[0];
-        command[1] = words[1];
-        command[2] = words[2];
-        command[3] = NULL;
-    }
+
+    command[i] = NULL;
 }

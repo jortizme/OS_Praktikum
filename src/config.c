@@ -35,7 +35,7 @@ void ReadCommandLine(struct Variable_Node *Variable_Head_List)
         return;
     }
 
-    else if (LookForPipe(token) == TRUE)
+    else if (strchr(token,'|') != NULL)
     {   
         if ((HEAD = SeparateLines(token, HEAD, space)) != NULL)
         {
@@ -63,11 +63,11 @@ void ExecuteNormalLine(struct Node* HEAD, struct Variable_Node *Variable_Head_Li
     int status;
     pid_t pid,pid_child;
     char space[2] = " ";
-    char *command[4];
-   
-
+    char* command[MAX_LINE_AMOUNT];
+    
      //words[0]=>command,words[1]=>parameter , words[2]=>parameter
     char **words = GetLineInfo(HEAD,1); //1 beause there is just one line 
+    
     AssignWords(words, command, space);
 
    //Build-in commands
@@ -100,7 +100,7 @@ void ExecuteNormalLine(struct Node* HEAD, struct Variable_Node *Variable_Head_Li
 
     else if(strcmp(command[0],"export") == 0)
     {
-       if(LookForAssignment(command[1]) == TRUE)
+       if(strchr(command[1],'=') != NULL)
        {    
             char *envnam = strtok(command[1], "=");
             command[1] = strtok(NULL, "=");
@@ -117,7 +117,7 @@ void ExecuteNormalLine(struct Node* HEAD, struct Variable_Node *Variable_Head_Li
             setenv(envnam,command[1],1);
             AddVariableToList(Variable_Head_List,envnam);
             printf("%s was given the value: %s\n",envnam , getenv(envnam));         
-       }
+        }
     }
 
     else if (strcmp(command[0],"set") == 0)

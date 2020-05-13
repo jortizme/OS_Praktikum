@@ -3,9 +3,19 @@
 struct Node* AddLineToList( struct Node *begin, char **cmd )
 {
     struct Node *item = ( struct Node*)malloc(sizeof(struct Node));
-    item->info[0] = cmd[0];
-    item->info[1] = cmd[1];
-    item->info[2] = cmd[2];
+
+    for(int i = 0; i < MAX_LINE_AMOUNT; i++)
+    {
+        item->info[i] = NULL;
+    }
+
+    for(int i = 0; i < MAX_LINE_AMOUNT && cmd[i] != NULL; i++ )
+    {
+        item->info[i] = cmd[i];
+    }
+    
+    //item->info[1] = cmd[1];
+    //item->info[2] = cmd[2];
 
     struct Node *aux1 = begin;
     struct Node *aux2 = NULL;
