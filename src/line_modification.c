@@ -1,19 +1,20 @@
 #include "include/line_modification.h"
+#include "include/config.h"
 
 int IsVariable(const char *pmt)
 {
     if ( pmt[0] == '$' )
-        return TRUE;
+        return true;
     else
-        return FALSE;
+        return false;
 }
 
 int IsExecutableProgramm(const char *cmd)
 {
     if(cmd[0] =='.')
-        return TRUE;
+        return true;
     else
-        return FALSE;
+        return false;
 }
 
 
@@ -59,19 +60,19 @@ Node* SeparateCmdAndPmt(char* token, Node *HEAD)
 
     //check if the parameter is a variable, if it is get the value
     //and overwrite the initial parameter value 
-    if(IsVariable(words[0]) == TRUE)
+    if(IsVariable(words[0]) == true)
     {
         if ((GetVariableValue(words[0]) == NULL))
             return NULL;
     }
-    else if (IsExecutableProgramm(words[0]) == TRUE)
+    else if (IsExecutableProgramm(words[0]) == true)
     {
         strcpy(words[0],realpath(words[0], NULL));
     }
     
     for( int i = 1; i < MAX_LINE_AMOUNT && words[i] != NULL; i++)
     {
-        if( (IsVariable(words[i])) == TRUE)                                           
+        if( (IsVariable(words[i])) == true)                                           
         {
             if ((GetVariableValue(words[i]) == NULL))
                 return NULL;
@@ -107,13 +108,17 @@ Node * SeparateLines( char* zeile, Node *HEAD)
     return HEAD;
 }
 
-void AssignWords(char **words, char **command)
+int AssignWords(char **words, char **command)
 {
     int i;
+    int NrArguments = 0;
 
     for(i = 0; i < MAX_LINE_AMOUNT && words[i] != NULL; i++)
     {
         command[i] = words[i];
+            NrArguments++;
     }
     command[i] = NULL;
+
+    return NrArguments;
 }

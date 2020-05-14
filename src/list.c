@@ -1,5 +1,6 @@
 #include "include/list.h"
 
+
 Node* AddLineToList( Node *begin, char **cmd )
 {
     Node* item = (Node*)malloc(sizeof(Node));

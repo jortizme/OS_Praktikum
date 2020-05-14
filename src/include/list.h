@@ -1,9 +1,7 @@
 #ifndef LIST_H 
     #define LIST_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "config.h"
 
 #define MAX_LINE_AMOUNT 6
 #define MAX_NR_PIPES    2

@@ -1,4 +1,6 @@
+#define CONFIG_CPP
 #include "include/config.h"
+
 
  static Node* HEAD;
  static Variable_Node* Variable_List;
@@ -20,11 +22,29 @@ void TypePrompt()
     free(buf);
 }
 
-void ReadCommandLine(Variable_Node* Variable_Head_List)
+void DefGlobVar()
+{
+
+    char *main_global_variables[16] = {"DISPLAY","HOME","PATH",
+                                        "LOGNAME","SHELL","USER",
+                                        "USERNAME", NULL};
+    Variable_List = NULL;
+    char **aux = main_global_variables;
+    int cnt = 0;
+
+    //Initialization of global variable List
+    while (aux[cnt] != NULL)
+    {
+        Variable_List = AddVariableToList(Variable_List, aux[cnt]);
+        cnt++;
+    }
+    
+}
+
+void ReadCommandLine()
 {
     char buffer[INPUT_SIZE];            
     char* token = NULL;
-    Variable_List = Variable_Head_List;
     HEAD = NULL;
 
     fgets(buffer, INPUT_SIZE, stdin);   
@@ -35,12 +55,11 @@ void ReadCommandLine(Variable_Node* Variable_Head_List)
         printf("Please enter a command\n");
         return;
     }
-
     else if (strchr(token,'|') != NULL)
     {   
         if ((HEAD = SeparateLines(token, HEAD)) != NULL)
         {
-            ExecutePipe(HEAD);
+            ExecutePipe();
         }
     }
     else
@@ -49,10 +68,9 @@ void ReadCommandLine(Variable_Node* Variable_Head_List)
             return;
         else
         {
-            ExecuteNormalLine(HEAD, Variable_Head_List);
+            ExecuteNormalLine();
         }
     }
-
     while( HEAD != NULL )
     {
         HEAD = DeleteLineList(HEAD);
@@ -68,7 +86,7 @@ void ExecuteNormalLine()
      //words[0]=>command,words[1]=>parameter , words[2]=>parameter
     char **words = GetLineInfo(HEAD,1); //1 beause there is just one line 
     
-    AssignWords(words, command);
+    int NrArguments = AssignWords(words, command);
 
    //Build-in commands
     if(strcmp(command[0],"exit") == 0)
@@ -79,9 +97,13 @@ void ExecuteNormalLine()
         }
         printf("exiting ...\n");
         exit(EXIT_SUCCESS);
-
     }
 
+    else if (strcmp(command[0],"ls") == 0)
+    {   
+        exec_ls(NrArguments,command);
+    }
+    
     else if(strcmp(command[0],"cd") == 0)
     {
         if(command[1] == NULL)
@@ -91,7 +113,6 @@ void ExecuteNormalLine()
                 perror("Failed finding /home\n");  
             }
         }
-            
         else if(chdir(command[1]) < 0)
         {
             perror("Directory not found\n");
@@ -100,12 +121,12 @@ void ExecuteNormalLine()
 
     else if(strcmp(command[0],"export") == 0)
     {
-       if(strchr(command[1],'=') != NULL)
-       {    
+        if(strchr(command[1],'=') != NULL)
+        {    
             char *envnam = strtok(command[1], "=");
             command[1] = strtok(NULL, "=");
 
-            if ((IsVariable(command[1])) == TRUE)
+            if ((IsVariable(command[1])) == true)
             {
                 if((GetVariableValue(command[1])) == NULL)
                     return ;     
@@ -122,7 +143,7 @@ void ExecuteNormalLine()
 
     else if (strcmp(command[0],"set") == 0)
     {
-        struct Variable_Node *aux1 = Variable_List;
+        Variable_Node *aux1 = Variable_List;
         char *variable = NULL;
         
         while( aux1 != NULL)
@@ -140,38 +161,24 @@ void ExecuteNormalLine()
         }
         return;
     }
-    
+    //Extern commands
     else
     {  
-    //Extern commands
-
         pid = fork();
-
-        if (pid < 0)
-        {
-            perror("Fork failed\n");
-            exit(EXIT_FAILURE);
-        }
+        ControlReturnNegative("Fork failed\n", pid);
 
         if(pid != 0)
         {
             pid_child = waitpid(-1, &status, 0);
-            if (pid_child < 0)
-            {
-                perror("waitpid failed\n");
-                exit(EXIT_FAILURE);
-            }   
+            ControlReturnNegative("waitpid failed\n", pid_child);
         }
         else
         {
-            if((execvp(words[0],command) < 0))
-            {
-                perror("execv failed");
-                exit(EXIT_FAILURE);
-            }            
+            ControlReturnNegative("execv failed\n", execvp(words[0],command));
         } 
     }
 }
+
 void ExecutePipe()
 {
     int status1, status2;
@@ -185,77 +192,54 @@ void ExecutePipe()
     char **words2 = GetLineInfo(HEAD,2);
     AssignWords(words1, command1);
     AssignWords(words2, command2);
-   
+
 //Extern commands
-    if (pipe(fdes) == -1)   //create the pipe and initialize fdes[0] and fdes[1]
-    {
-        perror("pipe\n");
-        exit(EXIT_FAILURE);
-    }
-    if((child1 = fork()) < 0)   //create child1
-    {
-        perror("Fork 1 failed\n");
-        exit(EXIT_FAILURE);
-    }   
+
+    //create the pipe and initialize fdes[0] and fdes[1]
+    ControlReturnNegative("Pipe failed\n", pipe(fdes));
+
+    //create child1
+    child1 = fork();
+    ControlReturnNegative("Fork 1 failed\n", child1);
+
     if(child1 != 0)         
     {
-        if((child2 = fork()) < 0)   //create child2 as parent of child1
-        {
-            perror("Fork 2 failed\n");
-            exit(EXIT_FAILURE);
-        }
+         //create child2 as parent of child1
+        child2 = fork();
+        ControlReturnNegative("Fork 2 failed\n", child2)
     }
-    if(child1 != 0 && child2 != 0)  //when parent from both
+    //when parent from both
+    if(child1 != 0 && child2 != 0)  
     {
         close(fdes[0]);
         close(fdes[1]);
 
-        if(waitpid(child1, &status1, 0) < 0)    //wait for child1
-        {
-            perror("waitpid2 failed\n");
-            exit(EXIT_FAILURE);
-        }
-        if(waitpid(child2, &status2, 0) < 0)    //wait for child2
-        {
-            perror("waitpid2 failed\n");
-            exit(EXIT_FAILURE);
-        }
+        //wait for child1
+        ControlReturnNegative("waitpid1 failed\n", waitpid(child1, &status1, 0));
 
+       //wait for child2
+        ControlReturnNegative("waitpid2 failed\n", waitpid(child2, &status2, 0));
     }
     else if(child1 == 0)        //when child1
     {
-        
-        //int fd1 = dup(fdes[1]);
-        if(dup2(fdes[1], STDOUT_FILENO) < 0)   //fdes[1] will be copied into STDOUT and survive execvp
-        {
-            perror("dup() failed at fd[1]");
-            exit(EXIT_FAILURE);
-        }
+        //fdes[1] will be copied into STDOUT and survive execvp
+        ControlReturnNegative("dup() failed at fd[1]", dup2(fdes[1], STDOUT_FILENO));
+
         close(fdes[0]);                  //close the read part of the pipe
         close(fdes[1]);
 
-        if((execvp(words1[0],command1) < 0))
-        {
-            perror("execv failed");
-            exit(EXIT_FAILURE);
-        }               
+        ControlReturnNegative("execv child 1 failed", execvp(words1[0],command1));        
     }
-    else if(child2 == 0)        //when child2
+     //when child2
+    else if(child2 == 0)       
     {
-       
-        //int fd0 = dup(fdes[0]);
-        if(dup2(fdes[0], STDIN_FILENO) < 0)    //fdes[0] will be copied into STDIN and survive execvp
-        {
-            perror("dup() failed at fd[0]");
-            exit(EXIT_FAILURE);
-        }
+        //fdes[0] will be copied into STDIN and survive execvp
+        ControlReturnNegative("dup() failed at fd[0]", dup2(fdes[0], STDIN_FILENO));
+
         close(fdes[1]);                 //close the write part of the pipe
         close(fdes[0]);
-        if((execvp(words2[0],command2) < 0))
-        {
-            perror("execv failed");
-            exit(EXIT_FAILURE);
-        }
+
+        ControlReturnNegative("execv child 2 failed", execvp(words2[0],command2));
     }
 }
 
