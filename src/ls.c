@@ -45,18 +45,8 @@ void parse_arguments(CommandInfo* Info,int argc,char** argv)
         else 
         {
             Info->PathIsThere = true;
-            if(*argv[argc-1] == '~')
-            {
-                char PrefixAux[20] = "/home/";
-                strcat(PrefixAux, getenv("$USER"));
-                strcpy(Info->PathName, PrefixAux);
-                strcat(Info->PathName, ++argv[argc-1]);
-            }
-            else
-            {
-                strcpy(Info->PathName, argv[argc-1]);
-                strcat(Info->PathName,"/");
-            }
+            strcpy(Info->PathName, argv[argc-1]);
+            strcat(Info->PathName,"/");
             
             loopLimit = argc - 2;
             
