@@ -174,7 +174,7 @@ void ExecuteNormalLine()
         }
         else
         {
-            ControlReturnNegative("execv failed\n", execvp(words[0],command));
+            ControlReturnNegative("command not found (execv failed)\n", execvp(words[0],command));
         } 
     }
 }
@@ -228,7 +228,7 @@ void ExecutePipe()
         close(fdes[0]);                  //close the read part of the pipe
         close(fdes[1]);
 
-        ControlReturnNegative("execv child 1 failed", execvp(words1[0],command1));        
+        ControlReturnNegative("command not found (execv child 1 failed)", execvp(words1[0],command1));        
     }
      //when child2
     else if(child2 == 0)       
@@ -239,7 +239,7 @@ void ExecutePipe()
         close(fdes[1]);                 //close the write part of the pipe
         close(fdes[0]);
 
-        ControlReturnNegative("execv child 2 failed", execvp(words2[0],command2));
+        ControlReturnNegative("command not found (execv child 2 failed)", execvp(words2[0],command2));
     }
 }
 
