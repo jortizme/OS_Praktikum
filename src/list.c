@@ -1,8 +1,8 @@
 #include "include/list.h"
 
-struct Node* AddLineToList( struct Node *begin, char **cmd )
+Node* AddLineToList( Node *begin, char **cmd )
 {
-    struct Node *item = ( struct Node*)malloc(sizeof(struct Node));
+    Node* item = (Node*)malloc(sizeof(Node));
 
     for(int i = 0; i < MAX_LINE_AMOUNT; i++)
     {
@@ -14,11 +14,8 @@ struct Node* AddLineToList( struct Node *begin, char **cmd )
         item->info[i] = cmd[i];
     }
     
-    //item->info[1] = cmd[1];
-    //item->info[2] = cmd[2];
-
-    struct Node *aux1 = begin;
-    struct Node *aux2 = NULL;
+    Node *aux1 = begin;
+    Node *aux2 = NULL;
 
     if( begin == NULL )    //This means the list is empty
     {
@@ -43,17 +40,17 @@ struct Node* AddLineToList( struct Node *begin, char **cmd )
 }
 //eine while Schleife machen und diese Funktion
 //aufrufen solange begin != NULL ist
-struct Node* DeleteLineList( struct Node *begin )                           
+Node* DeleteLineList( Node *begin )                           
 {
-    struct Node *aux = begin;
+    Node *aux = begin;
     begin = begin->next;
     free(aux);
     return begin;
 }
 
-char** GetLineInfo(struct Node *begin, int stelle)
+char** GetLineInfo(Node *begin, int stelle)
 {
-    struct Node* aux = begin;
+    Node* aux = begin;
 
     while ( aux->position != stelle )
     {
@@ -63,10 +60,10 @@ char** GetLineInfo(struct Node *begin, int stelle)
     return aux->info;
 }
 
-struct Variable_Node* AddVariableToList(struct Variable_Node *begin, char *variable)
+Variable_Node* AddVariableToList(Variable_Node *begin, char *variable)
 {
 
-    struct Variable_Node *loof_for_variable = begin;
+    Variable_Node *loof_for_variable = begin;
 
     while(loof_for_variable != NULL)
     {
@@ -76,11 +73,11 @@ struct Variable_Node* AddVariableToList(struct Variable_Node *begin, char *varia
         loof_for_variable = loof_for_variable->next;
     }
 
-    struct Variable_Node *item = (struct Variable_Node*)malloc(sizeof(struct Variable_Node));
+    Variable_Node *item = (Variable_Node*)malloc(sizeof(Variable_Node));
     item->var = (char*)malloc(16 * sizeof(char));
     strcpy(item->var,variable);
-    struct Variable_Node *aux1 = begin;
-    struct Variable_Node *aux2 = NULL;
+    Variable_Node *aux1 = begin;
+    Variable_Node *aux2 = NULL;
 
     if( begin == NULL )    //This means the list is empty
     {
@@ -101,9 +98,9 @@ struct Variable_Node* AddVariableToList(struct Variable_Node *begin, char *varia
     return begin;
 }
 
-struct Variable_Node* DeleteVariableList(struct Variable_Node *begin)
+Variable_Node* DeleteVariableList(Variable_Node *begin)
 {
-    struct Variable_Node *aux = begin;
+    Variable_Node *aux = begin;
     begin = begin->next;
     free(aux->var);
     free(aux);

@@ -7,9 +7,9 @@
 
 int IsVariable(const char *pmt);
 char* GetVariableValue(char *pmt);
-struct Node * SeparateCmdAndPmt(char* token, struct Node *HEAD, char **space);
-struct Node * SeparateLines(char* zeile, struct Node *HEAD, char** space);
-void AssignWords(char **words, char **command, char *space);
+struct Node * SeparateCmdAndPmt(char* token, struct Node *HEAD);
+struct Node * SeparateLines(char* zeile, struct Node *HEAD);
+void AssignWords(char **words, char **command);
 void GetStringAssignment(char* name, char* pmt);
 int IsExecutableProgramm(const char *cmd);
 

@@ -1,5 +1,7 @@
 #include "include/config.h"
 
+ static Node* HEAD;
+ static Variable_Node* Variable_List;
 
 void TypePrompt()
 {
@@ -18,16 +20,15 @@ void TypePrompt()
     free(buf);
 }
 
-void ReadCommandLine(struct Variable_Node *Variable_Head_List)
+void ReadCommandLine(Variable_Node* Variable_Head_List)
 {
     char buffer[INPUT_SIZE];            
-    char *token = NULL;
-    char *space[2] = { " ", " " };
-    char enter[2] = "\n";                         
-    static struct Node *HEAD = NULL;
+    char* token = NULL;
+    Variable_List = Variable_Head_List;
+    HEAD = NULL;
 
     fgets(buffer, INPUT_SIZE, stdin);   
-    token = strtok(buffer, enter);      //removes the "\n" at the end of the line
+    token = strtok(buffer, "\n");      //removes the "\n" at the end of the line
 
     if(token == NULL)
     {
@@ -37,14 +38,14 @@ void ReadCommandLine(struct Variable_Node *Variable_Head_List)
 
     else if (strchr(token,'|') != NULL)
     {   
-        if ((HEAD = SeparateLines(token, HEAD, space)) != NULL)
+        if ((HEAD = SeparateLines(token, HEAD)) != NULL)
         {
             ExecutePipe(HEAD);
         }
     }
     else
     {
-        if((HEAD = SeparateCmdAndPmt(token, HEAD, space)) == NULL)
+        if((HEAD = SeparateCmdAndPmt(token, HEAD)) == NULL)
             return;
         else
         {
@@ -58,24 +59,23 @@ void ReadCommandLine(struct Variable_Node *Variable_Head_List)
     } 
 }
 
-void ExecuteNormalLine(struct Node* HEAD, struct Variable_Node *Variable_Head_List)
+void ExecuteNormalLine()
 {
     int status;
     pid_t pid,pid_child;
-    char space[2] = " ";
     char* command[MAX_LINE_AMOUNT];
     
      //words[0]=>command,words[1]=>parameter , words[2]=>parameter
     char **words = GetLineInfo(HEAD,1); //1 beause there is just one line 
     
-    AssignWords(words, command, space);
+    AssignWords(words, command);
 
    //Build-in commands
     if(strcmp(command[0],"exit") == 0)
     {
-        while(Variable_Head_List != NULL)
+        while(Variable_List != NULL)
         {
-            Variable_Head_List = DeleteVariableList(Variable_Head_List);
+            Variable_List = DeleteVariableList(Variable_List);
         }
         printf("exiting ...\n");
         exit(EXIT_SUCCESS);
@@ -115,14 +115,14 @@ void ExecuteNormalLine(struct Node* HEAD, struct Variable_Node *Variable_Head_Li
                 GetStringAssignment(envnam,command[1]);
             }
             setenv(envnam,command[1],1);
-            AddVariableToList(Variable_Head_List,envnam);
+            AddVariableToList(Variable_List,envnam);
             printf("%s was given the value: %s\n",envnam , getenv(envnam));         
         }
     }
 
     else if (strcmp(command[0],"set") == 0)
     {
-        struct Variable_Node *aux1 = Variable_Head_List;
+        struct Variable_Node *aux1 = Variable_List;
         char *variable = NULL;
         
         while( aux1 != NULL)
@@ -172,20 +172,19 @@ void ExecuteNormalLine(struct Node* HEAD, struct Variable_Node *Variable_Head_Li
         } 
     }
 }
-void ExecutePipe(struct Node* HEAD)
+void ExecutePipe()
 {
     int status1, status2;
     pid_t child1,child2;
-    char space[2] = " ";
-    char *command1[3];
-    char *command2[3];
+    char *command1[MAX_LINE_AMOUNT];
+    char *command2[MAX_LINE_AMOUNT];
     int fdes[2];
 
      //words[0]=>command,words[1]=>parameter 
     char **words1 = GetLineInfo(HEAD,1); //1 beause there is just one line
     char **words2 = GetLineInfo(HEAD,2);
-    AssignWords(words1, command1, space);
-    AssignWords(words2, command2, space);
+    AssignWords(words1, command1);
+    AssignWords(words2, command2);
    
 //Extern commands
     if (pipe(fdes) == -1)   //create the pipe and initialize fdes[0] and fdes[1]

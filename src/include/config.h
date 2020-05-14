@@ -22,8 +22,8 @@ enum boolean {FALSE, TRUE};
 enum test    {FAILURE = 3, SUCCESS};
 
 void TypePrompt();
-void ReadCommandLine(struct Variable_Node *Variable_Head_List);
-void ExecuteNormalLine(struct Node* HEAD,  struct Variable_Node *Variable_Head_List);
-void ExecutePipe(struct Node* HEAD);
+void ReadCommandLine(Variable_Node *Variable_Head_List);
+void ExecuteNormalLine();
+void ExecutePipe();
 
 #endif

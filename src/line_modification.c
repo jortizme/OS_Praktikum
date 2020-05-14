@@ -19,30 +19,22 @@ int IsExecutableProgramm(const char *cmd)
 
 void GetStringAssignment(char* name, char* pmt)
 {
-    char* aux1 = pmt;
-    char* aux2 = aux1;
+    char* AssignmentPos = strchr(pmt,'=');
 
-    while(*aux2 != '\0')
-    {
-        if(*aux2 == '=')
-        {
-            *aux2 ='\0';
-            name = aux1;
-            pmt = aux2 + 1;
-            return;
-        
-        }
-        aux2++;
-    }
+    *AssignmentPos = '\0';
+
+    name = pmt;
+    pmt = ++AssignmentPos;
+
 }
 
 char* GetVariableValue(char *pmt)
 {
-    char *varname = pmt;
-    varname = varname + 1;
-    char *varvalue = getenv(varname);
-    if(varvalue != NULL)
+    char* varvalue;
+
+    if((varvalue = getenv(++pmt)) != NULL)
     {
+        --pmt;
         strcpy(pmt, varvalue);
         return pmt;
     }
@@ -53,18 +45,16 @@ char* GetVariableValue(char *pmt)
     }
 }
 
-struct Node* SeparateCmdAndPmt(char* token, struct Node *HEAD, char **space)
+Node* SeparateCmdAndPmt(char* token, Node *HEAD)
 {
-    int cnt = 0;
     char *words[MAX_LINE_AMOUNT] = {NULL, NULL, NULL, NULL, NULL, NULL};
-    char *exec = NULL;
-   
-    token = strtok(token, space[0]);
+
+    token = strtok(token, " ");
     
     for(int i = 0; i < MAX_LINE_AMOUNT && token != NULL; i++ )
     {
         words[i]  = token;
-        token = strtok(NULL, space[0]);
+        token = strtok(NULL, " ");
     }
 
     //check if the parameter is a variable, if it is get the value
@@ -76,8 +66,7 @@ struct Node* SeparateCmdAndPmt(char* token, struct Node *HEAD, char **space)
     }
     else if (IsExecutableProgramm(words[0]) == TRUE)
     {
-        exec = realpath(words[0], NULL);
-        strcpy(words[0],exec);
+        strcpy(words[0],realpath(words[0], NULL));
     }
     
     for( int i = 1; i < MAX_LINE_AMOUNT && words[i] != NULL; i++)
@@ -94,51 +83,31 @@ struct Node* SeparateCmdAndPmt(char* token, struct Node *HEAD, char **space)
     return HEAD;
 }
 
-struct Node * SeparateLines( char* zeile, struct Node *HEAD, char **space)
+Node * SeparateLines( char* zeile, Node *HEAD)
 {    
-   char *aux = zeile;
-   char *before_aux = aux - 1;
-   char *after_aux = aux + 1;
-   char *kopf_zeile = aux;
-   int cnt = 0;
+    char* PipePos = strchr(zeile, '|');
+    char* AnotherPipe = strrchr(zeile, '|');
 
-   while( *aux != '\0')
-   {
-       if( *aux == '|' )
-       {    
-           cnt++;
-           if(cnt > 1)
-           {
-               printf("Only one pipe is allowed\n");
-                while( HEAD != NULL )
-                {
-                    HEAD = DeleteLineList(HEAD);
-                } 
-               return NULL;
-           }
-            *before_aux = '\0';
-            if ((HEAD = SeparateCmdAndPmt(kopf_zeile,HEAD ,space)) == NULL)
-                return NULL;
-            aux = after_aux + 1;
-            after_aux = aux + 1;
-            before_aux = aux - 1;
-            kopf_zeile = aux;
-       }
-       else if (*after_aux == '\0')
-       {
-            if ((HEAD = SeparateCmdAndPmt(kopf_zeile,HEAD, space)) == NULL)
-                return NULL;    
-       }
-       
-       after_aux++;
-       aux++;
-       before_aux++;
-   }
+    if( AnotherPipe != NULL && AnotherPipe != PipePos)
+    {
+        printf("Only one pipe is allowed\n");
+        return NULL;
+    }
+
+    *(--PipePos) = '\0';
+
+    for(int i = 0; i < MAX_NR_PIPES; i++)
+    {
+        if ((HEAD = SeparateCmdAndPmt(zeile,HEAD)) == NULL)
+            return NULL;
+
+        zeile = PipePos + 3;
+    }
 
     return HEAD;
 }
 
-void AssignWords(char **words, char **command, char *space)
+void AssignWords(char **words, char **command)
 {
     int i;
 
@@ -146,6 +115,5 @@ void AssignWords(char **words, char **command, char *space)
     {
         command[i] = words[i];
     }
-
     command[i] = NULL;
 }
